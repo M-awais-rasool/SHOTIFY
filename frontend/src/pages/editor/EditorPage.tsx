@@ -50,7 +50,6 @@ export function EditorPage() {
   const [isSaving, setIsSaving] = useState(false)
   const [devicePreview, setDevicePreview] = useState<'iphone' | 'android'>('iphone')
 
-  // Fetch project
   useEffect(() => {
     if (!projectId) return
 
@@ -58,13 +57,19 @@ export function EditorPage() {
       try {
         const response = await projectsApi.getById(projectId)
         const data = response.data.data as Project
+        
         setProject(data)
+        
+        const exports = data.projectConfig.exports?.length 
+          ? data.projectConfig.exports 
+          : data.template?.jsonConfig.exports || []
+          
         initialize(
           data.projectConfig.canvas,
           data.projectConfig.layers,
           data.projectConfig.images || [],
-          data.template?.jsonConfig.exports || [],
-          data.projectConfig.slides // Pass saved slides if available
+          exports,
+          data.projectConfig.slides 
         )
       } catch (error) {
         console.error('Failed to fetch project:', error)
@@ -77,7 +82,6 @@ export function EditorPage() {
     fetchProject()
   }, [projectId, navigate, initialize])
 
-  // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey) {
@@ -109,14 +113,12 @@ export function EditorPage() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [undo, redo, currentSlideId, duplicateSlide, setSelectedLayerId])
 
-  // Save project
   const handleSave = useCallback(async () => {
     if (!project || isSaving) return
 
     setIsSaving(true)
     try {
       const { slides, images } = useEditorStore.getState()
-      // Save all slides data
       const slidesData = slides.map(slide => ({
         id: slide.id,
         canvas: slide.canvas,
@@ -125,7 +127,6 @@ export function EditorPage() {
       
       await projectsApi.update(project.id, {
         projectConfig: { 
-          // Keep first slide for backwards compatibility
           canvas: slides[0]?.canvas || { width: 1242, height: 2688, backgroundColor: '#D8E5D8' },
           layers: slides[0]?.layers || [],
           images,
@@ -140,7 +141,6 @@ export function EditorPage() {
     }
   }, [project, isSaving, setIsDirty])
 
-  // Scroll to active slide
   const scrollToSlide = (direction: 'left' | 'right') => {
     const container = scrollContainerRef.current
     if (!container) return
@@ -166,12 +166,10 @@ export function EditorPage() {
       </div>
     )
   }
-
+  
   return (
     <div className="h-screen bg-background flex flex-col overflow-hidden">
-      {/* Top Navigation Bar */}
       <header className="h-16 bg-surface border-b border-border flex items-center justify-between px-4 flex-shrink-0">
-        {/* Left Section - Logo & Back */}
         <div className="flex items-center gap-4">
           <Link
             to="/dashboard"
@@ -183,7 +181,6 @@ export function EditorPage() {
           
           <div className="h-8 w-px bg-border" />
           
-          {/* Project Title */}
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-lg flex items-center justify-center">
               <span className="text-white text-sm font-bold">S</span>
@@ -200,7 +197,6 @@ export function EditorPage() {
           </div>
         </div>
 
-        {/* Center Section - Quick Actions */}
         <div className="flex items-center gap-1 bg-surface border border-border rounded-xl p-1">
           <button
             onClick={() => {}}
@@ -246,9 +242,7 @@ export function EditorPage() {
           </button>
         </div>
 
-        {/* Right Section - Preview & Export */}
         <div className="flex items-center gap-3">
-          {/* Device Preview Toggle */}
           <div className="flex items-center gap-1 bg-surface border border-border rounded-lg p-1">
             <button
               onClick={() => setDevicePreview('iphone')}
@@ -274,7 +268,6 @@ export function EditorPage() {
 
           <div className="h-8 w-px bg-border" />
 
-          {/* Save */}
           <button
             onClick={handleSave}
             disabled={isSaving || !isDirty}
@@ -288,13 +281,11 @@ export function EditorPage() {
             Save
           </button>
 
-          {/* Preview */}
           <button className="px-4 py-2 bg-surface border border-border rounded-lg text-sm font-medium text-text-primary hover:bg-border transition-colors flex items-center gap-2">
             <Eye className="w-4 h-4" />
             Preview
           </button>
 
-          {/* Export */}
           <Link
             to={`/export/${projectId}`}
             className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
@@ -305,7 +296,6 @@ export function EditorPage() {
         </div>
       </header>
 
-      {/* Second Row - Tabs */}
       <div className="h-12 bg-surface border-b border-border flex items-center px-4 gap-6">
         <button className="px-4 py-2 text-sm font-medium text-text-secondary hover:text-text-primary transition-colors flex items-center gap-2">
           ⚙️ Setup
@@ -322,7 +312,6 @@ export function EditorPage() {
         
         <div className="flex-1" />
         
-        {/* Device selector */}
         <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/30 rounded-lg">
           <Smartphone className="w-4 h-4 text-emerald-500" />
           <span className="text-sm font-medium text-emerald-600">
@@ -332,14 +321,10 @@ export function EditorPage() {
         </div>
       </div>
 
-      {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
-        {/* Left Panel - Elements */}
         <ElementsPanel />
 
-        {/* Canvas Area - Horizontal Scrolling Slides */}
         <div className="flex-1 bg-gradient-to-br from-slate-50 to-slate-100 overflow-hidden relative flex flex-col">
-          {/* Slide Navigation */}
           <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 flex items-center gap-4">
             <button
               onClick={() => scrollToSlide('left')}
@@ -360,7 +345,6 @@ export function EditorPage() {
             </button>
           </div>
 
-          {/* Slides Container */}
           <div
             ref={scrollContainerRef}
             className="flex-1 flex items-center gap-8 px-8 overflow-x-auto overflow-y-hidden snap-x snap-mandatory scrollbar-hide"
@@ -384,7 +368,6 @@ export function EditorPage() {
               </div>
             ))}
 
-            {/* Add new slide button */}
             <div className="snap-center flex-shrink-0 h-[calc(100%-40px)] flex items-center">
               <button
                 onClick={addSlide}
@@ -400,7 +383,6 @@ export function EditorPage() {
             </div>
           </div>
 
-          {/* Slide Thumbnails */}
           <div className="h-20 bg-white border-t border-border flex items-center px-4 gap-2 overflow-x-auto">
             {slides.map((slide, index) => (
               <button
@@ -429,7 +411,6 @@ export function EditorPage() {
           </div>
         </div>
 
-        {/* Right Panel - Properties */}
         <ConfigPanel />
       </div>
     </div>

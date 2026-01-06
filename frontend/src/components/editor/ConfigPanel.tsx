@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import { useEditorStore } from '@/stores/editorStore'
 import { uploadApi } from '@/lib/api'
+import { normalizeLayerProperties } from '@/lib/layerUtils'
 import type { LayerConfig, TextProperties, ImageProperties, ShapeProperties } from '@/types'
 import {
   ChevronDown,
@@ -169,7 +170,7 @@ function ToggleSwitch({ label, checked, onChange }: { label: string; checked: bo
 }
 
 function TextPropertiesPanel({ layer, onUpdate }: { layer: LayerConfig; onUpdate: (updates: Partial<LayerConfig>) => void }) {
-  const props = layer.properties as TextProperties
+  const props = normalizeLayerProperties<TextProperties>(layer.properties)
 
   const updateProps = (updates: Partial<TextProperties>) => {
     onUpdate({ properties: { ...props, ...updates } })
@@ -245,13 +246,35 @@ function TextPropertiesPanel({ layer, onUpdate }: { layer: LayerConfig; onUpdate
           max={3}
           step={0.1}
         />
+
+        <div className="pt-3 border-t border-border">
+          <label className="text-xs font-medium text-text-muted uppercase tracking-wider mb-2 block">Position Mode</label>
+          <select
+            value={props.position || 'top'}
+            onChange={(e) => updateProps({ position: e.target.value as TextProperties['position'] })}
+            className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all"
+          >
+            <option value="top">Top</option>
+            <option value="center">Center</option>
+            <option value="bottom">Bottom</option>
+          </select>
+        </div>
+
+        <SliderInput
+          label="Vertical Offset"
+          value={props.offsetY || 0}
+          onChange={(v) => updateProps({ offsetY: v })}
+          min={0}
+          max={2000}
+          suffix="px"
+        />
       </div>
     </AccordionSection>
   )
 }
 
 function ImagePropertiesPanel({ layer, onUpdate }: { layer: LayerConfig; onUpdate: (updates: Partial<LayerConfig>) => void }) {
-  const props = layer.properties as ImageProperties
+  const props = normalizeLayerProperties<ImageProperties>(layer.properties)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [isUploading, setIsUploading] = useState(false)
 
@@ -342,13 +365,45 @@ function ImagePropertiesPanel({ layer, onUpdate }: { layer: LayerConfig; onUpdat
             />
           </div>
         )}
+
+        {/* Layout Controls */}
+        <div className="pt-3 border-t border-border space-y-1.5">
+          <label className="text-xs font-medium text-text-muted uppercase tracking-wider">Horizontal Align</label>
+          <select
+            value={props.anchorX || 'center'}
+            onChange={(e) => updateProps({ anchorX: e.target.value as ImageProperties['anchorX'] })}
+            className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all"
+          >
+            <option value="left">Left</option>
+            <option value="center">Center</option>
+            <option value="right">Right</option>
+          </select>
+        </div>
+
+        <SliderInput
+          label="Vertical Offset"
+          value={props.offsetY || 0}
+          onChange={(v) => updateProps({ offsetY: v })}
+          min={0}
+          max={2000}
+          suffix="px"
+        />
+
+        <SliderInput
+          label="Scale"
+          value={(props.scale || 1) * 100}
+          onChange={(v) => updateProps({ scale: v / 100 })}
+          min={50}
+          max={150}
+          suffix="%"
+        />
       </div>
     </AccordionSection>
   )
 }
 
 function ShapePropertiesPanel({ layer, onUpdate }: { layer: LayerConfig; onUpdate: (updates: Partial<LayerConfig>) => void }) {
-  const props = layer.properties as ShapeProperties
+  const props = normalizeLayerProperties<ShapeProperties>(layer.properties)
 
   const updateProps = (updates: Partial<ShapeProperties>) => {
     onUpdate({ properties: { ...props, ...updates } })
@@ -380,6 +435,15 @@ function ShapePropertiesPanel({ layer, onUpdate }: { layer: LayerConfig; onUpdat
           onChange={(v) => updateProps({ strokeWidth: v })}
           min={0}
           max={20}
+          suffix="px"
+        />
+
+        <SliderInput
+          label="Vertical Offset"
+          value={props.offsetY || 0}
+          onChange={(v) => updateProps({ offsetY: v })}
+          min={0}
+          max={2000}
           suffix="px"
         />
       </div>
@@ -504,7 +568,6 @@ export default function ConfigPanel() {
 
   return (
     <div className="w-80 bg-background border-l border-border h-full flex flex-col">
-      {/* Header */}
       <div className="px-4 py-4 border-b border-border">
         <div className="flex items-center gap-2">
           <div className="p-2 bg-emerald-500/10 rounded-lg">
@@ -521,11 +584,9 @@ export default function ConfigPanel() {
         </div>
       </div>
 
-      {/* Content */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {selectedLayer ? (
           <>
-            {/* Layer controls */}
             <div className="flex items-center gap-2 p-2 bg-surface rounded-lg">
               <button
                 onClick={() => handleUpdate({ visible: !selectedLayer.visible })}
@@ -547,7 +608,6 @@ export default function ConfigPanel() {
               </span>
             </div>
 
-            {/* Type-specific panels */}
             {selectedLayer.type === 'text' && (
               <TextPropertiesPanel layer={selectedLayer} onUpdate={handleUpdate} />
             )}
@@ -564,7 +624,6 @@ export default function ConfigPanel() {
           <>
             <BackgroundPanel />
             
-            {/* Slide info */}
             {currentSlide && (
               <div className="p-4 bg-surface rounded-xl border border-border">
                 <div className="flex items-center gap-2 mb-3">
@@ -589,7 +648,6 @@ export default function ConfigPanel() {
         )}
       </div>
 
-      {/* Footer */}
       <div className="p-4 border-t border-border">
         <div className="text-xs text-text-muted text-center">
           Click on elements in the preview to edit

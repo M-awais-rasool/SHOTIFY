@@ -1,15 +1,9 @@
 import { useRef } from 'react'
 import type { LayerConfig, TextProperties, ImageProperties, ShapeProperties } from '@/types'
-import { useEditorStore, type Slide } from '@/stores/editorStore'
+import { useEditorStore } from '@/stores/editorStore'
 import { uploadApi } from '@/lib/api'
+import { calculateLayerStyle, LayoutConfig, normalizeLayerProperties, TemplateSlideProps } from '@/lib/layerUtils'
 import { ImagePlus, Smartphone } from 'lucide-react'
-
-interface TemplateSlideProps {
-  slide: Slide
-  isActive: boolean
-  index: number
-  onClick: () => void
-}
 
 export default function TemplateSlide({ slide, isActive, index, onClick }: TemplateSlideProps) {
   const { selectedLayerId, setSelectedLayerId, currentSlideId, updateLayer } = useEditorStore()
@@ -34,7 +28,6 @@ export default function TemplateSlide({ slide, isActive, index, onClick }: Templ
       const response = await uploadApi.uploadImage(file)
       const imageUrl = response.data.data.url
       
-      // Get the latest layer state from the store
       const currentSlide = useEditorStore.getState().slides.find(s => s.id === slide.id)
       const layer = currentSlide?.layers.find(l => l.id === layerId)
       
@@ -57,7 +50,6 @@ export default function TemplateSlide({ slide, isActive, index, onClick }: Templ
       handleImageUpload(uploadingLayerId.current, file)
     }
     uploadingLayerId.current = null
-    // Reset input so the same file can be selected again
     if (e.target) {
       e.target.value = ''
     }
@@ -73,23 +65,6 @@ export default function TemplateSlide({ slide, isActive, index, onClick }: Templ
 
     const isSelected = selectedLayerId === layer.id && slide.id === currentSlideId
     
-    // For background shapes that cover the full canvas, don't use centering transforms
-    const isFullBackground = layer.type === 'shape' && 
-      layer.x === 0 && layer.y === 0 && 
-      layer.width === slide.canvas.width && layer.height === slide.canvas.height
-
-    const baseStyle: React.CSSProperties = {
-      position: 'absolute',
-      left: isFullBackground ? '0' : `${(layer.x / slide.canvas.width) * 100}%`,
-      top: isFullBackground ? '0' : `${(layer.y / slide.canvas.height) * 100}%`,
-      width: `${(layer.width / slide.canvas.width) * 100}%`,
-      height: layer.type === 'text' ? 'auto' : `${(layer.height / slide.canvas.height) * 100}%`,
-      transform: isFullBackground ? 'none' : `translate(-50%, ${layer.type === 'text' ? '0' : '-50%'}) rotate(${layer.rotation}deg)`,
-      opacity: layer.opacity,
-      cursor: layer.locked ? 'default' : 'pointer',
-      zIndex: layer.zIndex,
-    }
-
     const selectionStyle: React.CSSProperties = isSelected ? {
       outline: '2px solid #4ADE80',
       outlineOffset: '2px',
@@ -98,7 +73,18 @@ export default function TemplateSlide({ slide, isActive, index, onClick }: Templ
 
     switch (layer.type) {
       case 'text': {
-        const props = layer.properties as TextProperties
+        const props = normalizeLayerProperties<TextProperties>(layer.properties)
+        
+        const layoutConfig: LayoutConfig = {
+          position: props.position || 'center',
+          anchorX: props.anchorX || 'center',
+          anchorY: props.anchorY || 'top',
+          offsetX: props.offsetX || 0,
+          offsetY: props.offsetY || layer.y,
+        }
+        
+        const baseStyle = calculateLayerStyle(layer, slide.canvas, layoutConfig)
+        
         return (
           <div
             key={layer.id}
@@ -106,25 +92,37 @@ export default function TemplateSlide({ slide, isActive, index, onClick }: Templ
             style={{
               ...baseStyle,
               ...selectionStyle,
-              fontFamily: props.fontFamily,
-              fontSize: `${(props.fontSize / slide.canvas.width) * 100}vw`,
-              fontWeight: props.fontWeight,
-              color: props.color,
-              textAlign: props.align,
-              lineHeight: props.lineHeight,
+              fontFamily: props.fontFamily || 'Inter',
+              fontSize: `${props.fontSize}px`,
+              fontWeight: props.fontWeight || '400',
+              color: props.color || '#000000',
+              textAlign: (props.align || 'left') as 'left' | 'center' | 'right',
+              lineHeight: props.lineHeight || 1.5,
               whiteSpace: 'pre-wrap',
               padding: '4px',
             }}
             className={`transition-all duration-150 ${!layer.locked ? 'hover:outline hover:outline-2 hover:outline-emerald-400/50 hover:outline-offset-2' : ''}`}
           >
-            {props.content}
+            {props.content || ''}
           </div>
         )
       }
 
       case 'image':
       case 'screenshot': {
-        const props = layer.properties as ImageProperties
+        const props = normalizeLayerProperties<ImageProperties>(layer.properties)
+        
+        const layoutConfig: LayoutConfig = {
+          position: props.position || 'center',
+          anchorX: props.anchorX || 'center',
+          anchorY: props.anchorY || 'center',
+          offsetX: props.offsetX || 0,
+          offsetY: props.offsetY || layer.y,
+          scale: props.scale || 1,
+        }
+        
+        const baseStyle = calculateLayerStyle(layer, slide.canvas, layoutConfig)
+        
         return (
           <div
             key={layer.id}
@@ -132,10 +130,10 @@ export default function TemplateSlide({ slide, isActive, index, onClick }: Templ
             style={{
               ...baseStyle,
               ...selectionStyle,
-              borderRadius: `${props.borderRadius}px`,
-              overflow: 'hidden',
+              borderRadius: `${props.borderRadius || 0}px`,
+              overflow: 'visible',
               boxShadow: props.shadow 
-                ? `${props.shadowOffsetX}px ${props.shadowOffsetY}px ${props.shadowBlur}px ${props.shadowColor}`
+                ? `${props.shadowOffsetX || 0}px ${props.shadowOffsetY || 0}px ${props.shadowBlur || 0}px ${props.shadowColor || 'rgba(0,0,0,0.2)'}`
                 : 'none',
             }}
             className={`transition-all duration-150 ${!layer.locked ? 'hover:outline hover:outline-2 hover:outline-emerald-400/50 hover:outline-offset-2' : ''}`}
@@ -145,25 +143,27 @@ export default function TemplateSlide({ slide, isActive, index, onClick }: Templ
                 src={props.src}
                 alt={layer.name}
                 className="w-full h-full object-cover"
+                style={{ borderRadius: `${props.borderRadius || 0}px` }}
                 draggable={false}
               />
             ) : (
               <div 
-                className="w-full h-full bg-white/10 backdrop-blur-sm flex flex-col items-center justify-center gap-3 border-2 border-dashed border-white/30 rounded-[inherit]"
+                className="w-full h-full bg-gradient-to-br from-slate-200 to-slate-300 flex flex-col items-center justify-center gap-3 border-2 border-dashed border-slate-400/50"
+                style={{ borderRadius: `${props.borderRadius || 0}px` }}
                 onClick={(e) => {
                   e.stopPropagation()
                   handleLayerClick(e, layer.id)
                   triggerFileUpload(layer.id)
                 }}
               >
-                <div className="p-3 bg-white/10 rounded-full">
+                <div className="p-4 bg-white/50 rounded-full">
                   {layer.type === 'screenshot' ? (
-                    <Smartphone className="w-8 h-8 text-white/60" />
+                    <Smartphone className="w-10 h-10 text-slate-500" />
                   ) : (
-                    <ImagePlus className="w-8 h-8 text-white/60" />
+                    <ImagePlus className="w-10 h-10 text-slate-500" />
                   )}
                 </div>
-                <span className="text-xs text-white/60 font-medium">
+                <span className="text-sm text-slate-600 font-medium">
                   {props.placeholder || 'Click to add image'}
                 </span>
               </div>
@@ -173,7 +173,18 @@ export default function TemplateSlide({ slide, isActive, index, onClick }: Templ
       }
 
       case 'shape': {
-        const props = layer.properties as ShapeProperties
+        const props = normalizeLayerProperties<ShapeProperties>(layer.properties)
+        
+        const layoutConfig: LayoutConfig = {
+          position: props.position || 'center',
+          anchorX: props.anchorX || 'center',
+          anchorY: props.anchorY || 'center',
+          offsetX: props.offsetX || 0,
+          offsetY: props.offsetY || layer.y,
+        }
+        
+        const baseStyle = calculateLayerStyle(layer, slide.canvas, layoutConfig)
+        
         return (
           <div
             key={layer.id}
@@ -181,9 +192,9 @@ export default function TemplateSlide({ slide, isActive, index, onClick }: Templ
             style={{
               ...baseStyle,
               ...selectionStyle,
-              backgroundColor: props.fill,
-              borderRadius: props.shapeType === 'circle' ? '50%' : `${props.cornerRadius}px`,
-              border: props.stroke ? `${props.strokeWidth}px solid ${props.stroke}` : 'none',
+              backgroundColor: props.fill || 'transparent',
+              borderRadius: props.shapeType === 'circle' ? '50%' : `${props.cornerRadius || 0}px`,
+              border: props.stroke ? `${props.strokeWidth || 0}px solid ${props.stroke}` : 'none',
             }}
             className={`transition-all duration-150 ${!layer.locked ? 'hover:outline hover:outline-2 hover:outline-emerald-400/50 hover:outline-offset-2' : ''}`}
           />
@@ -196,21 +207,14 @@ export default function TemplateSlide({ slide, isActive, index, onClick }: Templ
   }
 
   const sortedLayers = [...slide.layers].sort((a, b) => a.zIndex - b.zIndex)
-  
-  // Check if there's a background shape layer - if not, use canvas background color
-  const hasBackgroundLayer = slide.layers.some(l => 
-    l.type === 'shape' && l.x === 0 && l.y === 0 && 
-    l.width === slide.canvas.width && l.height === slide.canvas.height
-  )
+  const backgroundColor = slide.canvas.backgroundColor
 
   return (
     <div className="relative h-full flex-shrink-0 group" style={{ aspectRatio: `${slide.canvas.width}/${slide.canvas.height}` }}>
-      {/* Slide number indicator */}
       <div className="absolute -top-8 left-1/2 -translate-x-1/2 px-3 py-1 bg-surface rounded-full text-xs font-medium text-text-secondary">
         {index + 1}
       </div>
 
-      {/* Slide container */}
       <div
         onClick={handleSlideClick}
         className={`
@@ -221,12 +225,10 @@ export default function TemplateSlide({ slide, isActive, index, onClick }: Templ
             : 'ring-1 ring-border hover:ring-2 hover:ring-emerald-400/50 hover:shadow-lg'
           }
         `}
-        style={{ backgroundColor: hasBackgroundLayer ? 'transparent' : slide.canvas.backgroundColor }}
+        style={{ backgroundColor }}
       >
-        {/* Layers */}
         {sortedLayers.map(renderLayer)}
 
-        {/* Active indicator */}
         {isActive && (
           <div className="absolute top-3 right-3 px-2 py-1 bg-emerald-500 text-white text-xs font-medium rounded-full shadow-lg">
             Editing
@@ -234,7 +236,6 @@ export default function TemplateSlide({ slide, isActive, index, onClick }: Templ
         )}
       </div>
 
-      {/* Hidden file input */}
       <input
         ref={fileInputRef}
         type="file"

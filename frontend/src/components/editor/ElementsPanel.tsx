@@ -52,7 +52,6 @@ export default function ElementsPanel() {
 
   return (
     <div className={`bg-background border-r border-border h-full flex flex-col transition-all duration-200 ${isCollapsed ? 'w-12' : 'w-64'}`}>
-      {/* Header */}
       <div className="px-4 py-4 border-b border-border flex items-center justify-between">
         {!isCollapsed && (
           <div className="flex items-center gap-2">
@@ -70,7 +69,6 @@ export default function ElementsPanel() {
         </button>
       </div>
 
-      {/* Elements List */}
       {!isCollapsed && (
         <div className="flex-1 overflow-y-auto p-3">
           <div className="space-y-1">
@@ -89,17 +87,14 @@ export default function ElementsPanel() {
                   ${!layer.visible ? 'opacity-50' : ''}
                 `}
               >
-                {/* Layer icon */}
                 <div className={`p-1.5 rounded-lg ${selectedLayerId === layer.id ? 'bg-emerald-500/20 text-emerald-500' : 'bg-surface text-text-secondary'}`}>
                   {layerIcons[layer.type] || <Square className="w-4 h-4" />}
                 </div>
 
-                {/* Layer name */}
                 <span className="flex-1 text-sm truncate text-text-primary">
                   {layer.name}
                 </span>
 
-                {/* Quick actions */}
                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                   <button
                     onClick={(e) => {
@@ -154,7 +149,6 @@ export default function ElementsPanel() {
         </div>
       )}
 
-      {/* Add element button */}
       {!isCollapsed && (
         <div className="p-3 border-t border-border">
           <button className="w-full py-2.5 px-4 bg-surface hover:bg-border text-text-primary rounded-xl font-medium text-sm flex items-center justify-center gap-2 transition-colors">
