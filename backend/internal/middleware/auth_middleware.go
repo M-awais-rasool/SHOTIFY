@@ -23,7 +23,6 @@ func AuthMiddleware(cfg *config.Config) gin.HandlerFunc {
 			return
 		}
 
-		// Extract token from "Bearer <token>"
 		parts := strings.Split(authHeader, " ")
 		if len(parts) != 2 || strings.ToLower(parts[0]) != "bearer" {
 			c.JSON(http.StatusUnauthorized, gin.H{
@@ -37,7 +36,6 @@ func AuthMiddleware(cfg *config.Config) gin.HandlerFunc {
 
 		token := parts[1]
 
-		// Validate token
 		claims, err := utils.ValidateToken(token, cfg.JWTSecret)
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{
@@ -49,7 +47,6 @@ func AuthMiddleware(cfg *config.Config) gin.HandlerFunc {
 			return
 		}
 
-		// Set user ID in context
 		c.Set("userID", claims.UserID)
 		c.Next()
 	}
