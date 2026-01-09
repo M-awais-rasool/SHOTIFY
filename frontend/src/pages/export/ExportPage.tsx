@@ -352,6 +352,36 @@ export default function ExportPage() {
     [loadedImages]
   )
 
+  const buildExportPath = (exportSize: ExportSize, slideIndex: number) => {
+    const platform = exportSize.platform?.toLowerCase()
+    const nameLower = (exportSize.name || '').toLowerCase()
+    const minDimension = Math.min(exportSize.width, exportSize.height)
+    const aspectRatio = Math.max(exportSize.width, exportSize.height) / Math.max(minDimension, 1)
+
+    const isIos = platform === 'ios'
+    const isAndroid = platform === 'android'
+
+    const isIpadLike = nameLower.includes('ipad') || nameLower.includes('pad')
+    const isTabletLike = nameLower.includes('tablet') || nameLower.includes('tab') || nameLower.includes('pad')
+    const ipadBySize = minDimension >= 1500 && aspectRatio <= 1.7
+    const tabletBySize = minDimension >= 1200 && aspectRatio <= 1.9
+
+    const rootFolder = isIos ? 'ios' : isAndroid ? 'android' : 'other'
+
+    let deviceFolder = 'other'
+    if (isIos) {
+      const isIpad = isIpadLike || ipadBySize
+      deviceFolder = isIpad ? 'ios-ipad' : 'ios-iphone'
+    } else if (isAndroid) {
+      const isTablet = isTabletLike || tabletBySize
+      deviceFolder = isTablet ? 'android-tablet' : 'android-phone'
+    }
+
+    const filename = `${exportSize.name.replace(/[^a-z0-9]/gi, '_')}_${exportSize.width}x${exportSize.height}_${slideIndex + 1}.png`
+
+    return `${rootFolder}/${deviceFolder}/${filename}`
+  }
+
   const handleExport = async () => {
     if (!project || selectedSizes.size === 0) return
 
@@ -377,20 +407,7 @@ export default function ExportPage() {
       for (const exportSize of selectedExports) {
         const blob = await renderSlide(slide.canvas, slide.layers, exportSize)
         if (blob) {
-          let platformFolder = ''
-          const sizeName = exportSize.name.toLowerCase()
-          
-          if (sizeName.includes('ipad')) {
-            platformFolder = 'iPad'
-          } else if (exportSize.platform === 'ios') {
-            platformFolder = 'iOS'
-          } else if (exportSize.platform === 'android') {
-            platformFolder = 'Android'
-          }
-          
-          const filename = `${exportSize.name.replace(/[^a-z0-9]/gi, '_')}_${exportSize.width}x${exportSize.height}_${slideIndex + 1}.png`
-          const filepath = platformFolder ? `${platformFolder}/${filename}` : filename
-          
+          const filepath = buildExportPath(exportSize, slideIndex)
           zip.file(filepath, blob)
         }
         completed++
