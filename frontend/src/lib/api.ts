@@ -68,3 +68,9 @@ export const uploadApi = {
     })
   },
 }
+
+export const getProxyImageUrl = (originalUrl: string): string => {
+  if (!originalUrl) return ''
+  const baseUrl = import.meta.env.VITE_API_URL || '/api'
+  return `${baseUrl}/proxy-image?url=${encodeURIComponent(originalUrl)}`
+}
