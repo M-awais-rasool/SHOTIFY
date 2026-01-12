@@ -9,6 +9,14 @@ import TemplatesPage from '@/pages/templates/TemplatesPage'
 import { EditorPage } from '@/pages/editor/EditorPage'
 import ExportPage from '@/pages/export/ExportPage'
 
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated } = useAuthStore()
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />
+  }
+  return <>{children}</>
+}
+
 function PublicRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuthStore()
   
@@ -42,7 +50,7 @@ export default function App() {
           />
         </Route>
 
-        <Route element={<MainLayout />}>
+        <Route element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/templates" element={<TemplatesPage />} />
           <Route path="/editor/:projectId" element={<EditorPage />} />
