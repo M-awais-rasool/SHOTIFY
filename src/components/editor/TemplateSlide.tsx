@@ -97,7 +97,7 @@ export default function TemplateSlide({ slide, isActive, onClick }: TemplateSlid
           anchorX: props.anchorX || 'center',
           anchorY: props.anchorY || 'top',
           offsetX: props.offsetX || 0,
-          offsetY: props.offsetY || layer.y,
+          offsetY: props.offsetY !== undefined ? props.offsetY : 0,
         }
         
         const baseStyle = calculateLayerStyle(layer, slide.canvas, layoutConfig)
@@ -136,7 +136,7 @@ export default function TemplateSlide({ slide, isActive, onClick }: TemplateSlid
           anchorX: props.anchorX || 'center',
           anchorY: props.anchorY || 'center',
           offsetX: props.offsetX || 0,
-          offsetY: props.offsetY || layer.y,
+          offsetY: props.offsetY !== undefined ? props.offsetY : 0,
           scale: props.scale || 1,
         }
         
@@ -237,7 +237,7 @@ export default function TemplateSlide({ slide, isActive, onClick }: TemplateSlid
           anchorX: props.anchorX || 'center',
           anchorY: props.anchorY || 'center',
           offsetX: props.offsetX || 0,
-          offsetY: props.offsetY || layer.y,
+          offsetY: props.offsetY !== undefined ? props.offsetY : 0,
         }
         
         const baseStyle = calculateLayerStyle(layer, slide.canvas, layoutConfig)
