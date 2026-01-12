@@ -28,7 +28,6 @@ const layerIcons: Record<string, React.ReactNode> = {
 
 const elementTypes = [
   { type: 'text', name: 'Text', icon: <Type className="w-6 h-6" />, color: 'emerald', description: 'Add headings & paragraphs' },
-  { type: 'image', name: 'Image', icon: <Image className="w-6 h-6" />, color: 'blue', description: 'Upload or drag images' },
   { type: 'screenshot', name: 'Screenshot', icon: <Smartphone className="w-6 h-6" />, color: 'purple', description: 'Device mockups' },
   { type: 'shape', name: 'Shape', icon: <Square className="w-6 h-6" />, color: 'pink', description: 'Rectangles & circles' },
 ]
@@ -111,7 +110,7 @@ export default function ElementsPanel() {
             anchorX: 'center',
             anchorY: 'center',
             offsetX: 0,
-            offsetY: 0,
+            offsetY: currentSlide.canvas.height / 2,
           }
         }
         break
@@ -143,7 +142,7 @@ export default function ElementsPanel() {
             anchorX: 'center',
             anchorY: 'center',
             offsetX: 0,
-            offsetY: 0,
+            offsetY: currentSlide.canvas.height / 2,
             scale: 1,
           }
         }
@@ -176,7 +175,7 @@ export default function ElementsPanel() {
             anchorX: 'center',
             anchorY: 'center',
             offsetX: 0,
-            offsetY: 0,
+            offsetY: currentSlide.canvas.height / 2,
             scale: 1,
           }
         }
@@ -206,7 +205,7 @@ export default function ElementsPanel() {
             anchorX: 'center',
             anchorY: 'center',
             offsetX: 0,
-            offsetY: 0,
+            offsetY: currentSlide.canvas.height / 2,
           }
         }
         break
