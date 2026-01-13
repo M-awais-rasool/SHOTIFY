@@ -63,7 +63,6 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Hero glow effect */}
       <div className="fixed inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse 80% 50% at 50% -20%, hsl(160 84% 39% / 0.15), transparent)' }} />
       
       <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative">
