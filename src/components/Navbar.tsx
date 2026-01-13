@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Sparkles, Menu, X } from "lucide-react";
 import { useState } from "react";
+import { Link } from "react-router-dom";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -35,12 +36,12 @@ const Navbar = () => {
           </div>
 
           <div className="hidden md:flex items-center gap-4">
-            <Button variant="ghost" className="text-muted-foreground hover:text-foreground">
+            <Link to="/login" className="text-muted-foreground hover:text-foreground">
               Sign In
-            </Button>
-            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl">
+            </Link>
+            <Link to="/register" className="bg-primary px-4 py-2 hover:bg-primary/90 text-primary-foreground rounded-xl">
               Start Free
-            </Button>
+            </Link>
           </div>
 
           <button 
