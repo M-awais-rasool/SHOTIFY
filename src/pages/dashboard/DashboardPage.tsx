@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
-import { projectsApi } from '@/lib/api'
-import type { Project } from '@/types'
+import { useState, useEffect } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { projectsApi } from "@/lib/api";
+import type { Project } from "@/types";
 import {
   Plus,
   MoreVertical,
@@ -12,59 +12,65 @@ import {
   Search,
   Clock,
   ArrowUpRight,
-} from 'lucide-react'
-import { formatDistanceToNow } from '@/lib/utils'
+} from "lucide-react";
+import { formatDistanceToNow } from "@/lib/utils";
 
 export default function DashboardPage() {
-  const navigate = useNavigate()
-  const [projects, setProjects] = useState<Project[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [deleteId, setDeleteId] = useState<string | null>(null)
-  const [menuOpenId, setMenuOpenId] = useState<string | null>(null)
-  const [searchQuery, setSearchQuery] = useState('')
+  const navigate = useNavigate();
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
-    fetchProjects()
-  }, [])
+    fetchProjects();
+  }, []);
 
   useEffect(() => {
-    const handleClickOutside = () => setMenuOpenId(null)
+    const handleClickOutside = () => setMenuOpenId(null);
     if (menuOpenId) {
-      document.addEventListener('click', handleClickOutside)
-      return () => document.removeEventListener('click', handleClickOutside)
+      document.addEventListener("click", handleClickOutside);
+      return () => document.removeEventListener("click", handleClickOutside);
     }
-  }, [menuOpenId])
+  }, [menuOpenId]);
 
   const fetchProjects = async () => {
     try {
-      const response = await projectsApi.getAll()
-      setProjects(response.data.data || [])
+      const response = await projectsApi.getAll();
+      setProjects(response.data.data || []);
     } catch (error) {
-      console.error('Failed to fetch projects:', error)
+      console.error("Failed to fetch projects:", error);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleDelete = async (id: string) => {
     try {
-      await projectsApi.delete(id)
-      setProjects(projects.filter((p) => p.id !== id))
+      await projectsApi.delete(id);
+      setProjects(projects.filter((p) => p.id !== id));
     } catch (error) {
-      console.error('Failed to delete project:', error)
+      console.error("Failed to delete project:", error);
     } finally {
-      setDeleteId(null)
+      setDeleteId(null);
     }
-  }
+  };
 
-  const filteredProjects = projects.filter(p => 
+  const filteredProjects = projects.filter((p) =>
     p.name.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+  );
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="fixed inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse 80% 50% at 50% -20%, hsl(160 84% 39% / 0.15), transparent)' }} />
-      
+      <div
+        className="fixed inset-0 pointer-events-none"
+        style={{
+          background:
+            "radial-gradient(ellipse 80% 50% at 50% -20%, hsl(160 84% 39% / 0.15), transparent)",
+        }}
+      />
+
       <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
           <div>
@@ -75,9 +81,9 @@ export default function DashboardPage() {
               Create beautiful app screenshots in minutes
             </p>
           </div>
-          
-          <Link 
-            to="/templates" 
+
+          <Link
+            to="/templates"
             className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground font-medium rounded-xl hover:bg-primary/90 transition-all shadow-lg shadow-primary/25 hover:shadow-primary/40"
           >
             <Plus className="w-5 h-5" />
@@ -106,8 +112,12 @@ export default function DashboardPage() {
                   <FolderOpen className="w-5 h-5 text-primary" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-foreground">{projects.length}</p>
-                  <p className="text-sm text-muted-foreground">Total Projects</p>
+                  <p className="text-2xl font-bold text-foreground">
+                    {projects.length}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Total Projects
+                  </p>
                 </div>
               </div>
             </div>
@@ -118,7 +128,13 @@ export default function DashboardPage() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-foreground">
-                    {projects.filter(p => new Date(p.updatedAt) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)).length}
+                    {
+                      projects.filter(
+                        (p) =>
+                          new Date(p.updatedAt) >
+                          new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+                      ).length
+                    }
                   </p>
                   <p className="text-sm text-muted-foreground">This Week</p>
                 </div>
@@ -130,7 +146,9 @@ export default function DashboardPage() {
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-32">
             <div className="w-12 h-12 border-4 border-border border-t-primary rounded-full animate-spin" />
-            <p className="mt-4 text-muted-foreground">Loading your projects...</p>
+            <p className="mt-4 text-muted-foreground">
+              Loading your projects...
+            </p>
           </div>
         ) : filteredProjects.length === 0 ? (
           <div className="bg-card border border-border rounded-2xl p-16 text-center">
@@ -138,17 +156,16 @@ export default function DashboardPage() {
               <FolderOpen className="w-12 h-12 text-muted-foreground" />
             </div>
             <h3 className="text-2xl font-bold text-foreground mb-3">
-              {searchQuery ? 'No projects found' : 'Start your first project'}
+              {searchQuery ? "No projects found" : "Start your first project"}
             </h3>
             <p className="text-muted-foreground mb-8 max-w-md mx-auto">
-              {searchQuery 
-                ? 'Try adjusting your search terms'
-                : 'Create stunning app store screenshots with our beautiful templates'
-              }
+              {searchQuery
+                ? "Try adjusting your search terms"
+                : "Create stunning app store screenshots with our beautiful templates"}
             </p>
             {!searchQuery && (
-              <Link 
-                to="/templates" 
+              <Link
+                to="/templates"
                 className="inline-flex items-center gap-2 px-8 py-4 bg-primary text-primary-foreground font-medium rounded-xl hover:bg-primary/90 transition-all shadow-lg shadow-primary/25"
               >
                 <Plus className="w-5 h-5" />
@@ -175,10 +192,12 @@ export default function DashboardPage() {
                     ) : (
                       <div className="w-full h-full flex flex-col items-center justify-center">
                         <Smartphone className="w-12 h-12 text-muted-foreground mb-2" />
-                        <span className="text-xs text-muted-foreground">No preview</span>
+                        <span className="text-xs text-muted-foreground">
+                          No preview
+                        </span>
                       </div>
                     )}
-                    
+
                     <div className="absolute inset-0 bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   </div>
 
@@ -187,12 +206,14 @@ export default function DashboardPage() {
                       <h3 className="text-lg font-semibold text-foreground truncate group-hover:text-primary transition-colors">
                         {project.name}
                       </h3>
-                      
+
                       <div className="relative flex-shrink-0">
                         <button
                           onClick={(e) => {
-                            e.stopPropagation()
-                            setMenuOpenId(menuOpenId === project.id ? null : project.id)
+                            e.stopPropagation();
+                            setMenuOpenId(
+                              menuOpenId === project.id ? null : project.id
+                            );
                           }}
                           className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-all"
                         >
@@ -206,8 +227,8 @@ export default function DashboardPage() {
                           >
                             <button
                               onClick={() => {
-                                setMenuOpenId(null)
-                                navigate(`/editor/${project.id}`)
+                                setMenuOpenId(null);
+                                navigate(`/editor/${project.id}`);
                               }}
                               className="w-full flex items-center gap-3 px-4 py-3 text-sm text-foreground hover:bg-secondary transition-colors"
                             >
@@ -217,8 +238,8 @@ export default function DashboardPage() {
                             <div className="h-px bg-border" />
                             <button
                               onClick={() => {
-                                setMenuOpenId(null)
-                                setDeleteId(project.id)
+                                setMenuOpenId(null);
+                                setDeleteId(project.id);
                               }}
                               className="w-full flex items-center gap-3 px-4 py-3 text-sm text-destructive hover:bg-destructive/10 transition-colors"
                             >
@@ -232,7 +253,9 @@ export default function DashboardPage() {
 
                     <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
                       <Clock className="w-4 h-4" />
-                      <span>Updated {formatDistanceToNow(project.updatedAt)}</span>
+                      <span>
+                        Updated {formatDistanceToNow(project.updatedAt)}
+                      </span>
                     </div>
 
                     <div className="flex-1" />
@@ -250,12 +273,12 @@ export default function DashboardPage() {
       </div>
 
       {deleteId && (
-        <div 
-          className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4" 
+        <div
+          className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4"
           onClick={() => setDeleteId(null)}
         >
-          <div 
-            className="bg-card border border-border rounded-2xl shadow-2xl max-w-sm w-full overflow-hidden" 
+          <div
+            className="bg-card border border-border rounded-2xl shadow-2xl max-w-sm w-full overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="p-8 text-center">
@@ -266,7 +289,8 @@ export default function DashboardPage() {
                 Delete Project?
               </h3>
               <p className="text-muted-foreground">
-                This action cannot be undone. All project data will be permanently removed.
+                This action cannot be undone. All project data will be
+                permanently removed.
               </p>
             </div>
             <div className="flex gap-3 p-4 bg-secondary/50 border-t border-border">
@@ -287,5 +311,5 @@ export default function DashboardPage() {
         </div>
       )}
     </div>
-  )
+  );
 }

@@ -1,11 +1,11 @@
-import { useState, useEffect, useCallback } from 'react'
-import { useParams, useNavigate, Link } from 'react-router-dom'
-import { projectsApi } from '@/lib/api'
-import { useEditorStore } from '@/stores/editorStore'
-import type { Project } from '@/types'
-import TemplateSlide from '@/components/editor/TemplateSlide'
-import ConfigPanel from '@/components/editor/ConfigPanel'
-import ElementsPanel from '@/components/editor/ElementsPanel'
+import { useState, useEffect, useCallback } from "react";
+import { useParams, useNavigate, Link } from "react-router-dom";
+import { projectsApi } from "@/lib/api";
+import { useEditorStore } from "@/stores/editorStore";
+import type { Project } from "@/types";
+import TemplateSlide from "@/components/editor/TemplateSlide";
+import ConfigPanel from "@/components/editor/ConfigPanel";
+import ElementsPanel from "@/components/editor/ElementsPanel";
 import {
   Loader2,
   Save,
@@ -15,12 +15,12 @@ import {
   Copy,
   Trash2,
   Plus,
-} from 'lucide-react'
+} from "lucide-react";
 
 export function EditorPage() {
-  const { projectId } = useParams<{ projectId: string }>()
-  const navigate = useNavigate()
-  
+  const { projectId } = useParams<{ projectId: string }>();
+  const navigate = useNavigate();
+
   const {
     slides,
     currentSlideId,
@@ -34,101 +34,105 @@ export function EditorPage() {
     duplicateSlide,
     deleteSlide,
     addSlide,
-  } = useEditorStore()
+  } = useEditorStore();
 
-  const [project, setProject] = useState<Project | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [isSaving, setIsSaving] = useState(false)
+  const [project, setProject] = useState<Project | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    if (!projectId) return
+    if (!projectId) return;
 
     const fetchProject = async () => {
       try {
-        const response = await projectsApi.getById(projectId)
-        const data = response.data.data as Project
-        
-        setProject(data)
-        
-        const exports = data.projectConfig.exports?.length 
-          ? data.projectConfig.exports 
-          : data.template?.jsonConfig.exports || []
-        const slides = data.projectConfig.slides?.length 
-          ? data.projectConfig.slides 
-          : data.template?.jsonConfig.slides || []
-          
+        const response = await projectsApi.getById(projectId);
+        const data = response.data.data as Project;
+
+        setProject(data);
+
+        const exports = data.projectConfig.exports?.length
+          ? data.projectConfig.exports
+          : data.template?.jsonConfig.exports || [];
+        const slides = data.projectConfig.slides?.length
+          ? data.projectConfig.slides
+          : data.template?.jsonConfig.slides || [];
+
         initialize(
           data.projectConfig.canvas,
           data.projectConfig.layers,
           data.projectConfig.images || [],
           exports,
           slides
-        )
+        );
       } catch (error) {
-        console.error('Failed to fetch project:', error)
-        navigate('/dashboard')
+        console.error("Failed to fetch project:", error);
+        navigate("/dashboard");
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
-    fetchProject()
-  }, [projectId, navigate, initialize])
+    fetchProject();
+  }, [projectId, navigate, initialize]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey) {
-        if (e.key === 'z') {
-          e.preventDefault()
-          undo()
+        if (e.key === "z") {
+          e.preventDefault();
+          undo();
         }
-        if (e.key === 's') {
-          e.preventDefault()
-          handleSave()
+        if (e.key === "s") {
+          e.preventDefault();
+          handleSave();
         }
-        if (e.key === 'd') {
-          e.preventDefault()
+        if (e.key === "d") {
+          e.preventDefault();
           if (currentSlideId) {
-            duplicateSlide(currentSlideId)
+            duplicateSlide(currentSlideId);
           }
         }
       }
-      if (e.key === 'Escape') {
-        setSelectedLayerId(null)
+      if (e.key === "Escape") {
+        setSelectedLayerId(null);
       }
-    }
+    };
 
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [undo, currentSlideId, duplicateSlide, setSelectedLayerId])
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [undo, currentSlideId, duplicateSlide, setSelectedLayerId]);
 
   const handleSave = useCallback(async () => {
-    if (!project || isSaving) return
+    if (!project || isSaving) return;
 
-    setIsSaving(true)
+    setIsSaving(true);
     try {
-      const { slides, images } = useEditorStore.getState()
-      const slidesData = slides.map(slide => ({
+      const { slides, images } = useEditorStore.getState();
+      const slidesData = slides.map((slide) => ({
         id: slide.id,
         canvas: slide.canvas,
         layers: slide.layers,
-      }))
-      
+      }));
+
       await projectsApi.update(project.id, {
-        projectConfig: { 
-          canvas: slides[0]?.canvas || { width: 1242, height: 2688, backgroundColor: '#D8E5D8' },
+        projectConfig: {
+          canvas: slides[0]?.canvas || {
+            width: 1242,
+            height: 2688,
+            backgroundColor: "#D8E5D8",
+          },
           layers: slides[0]?.layers || [],
           images,
           slides: slidesData,
         },
-      })
-      setIsDirty(false)
+      });
+      setIsDirty(false);
     } catch (error) {
-      console.error('Failed to save project:', error)
+      console.error("Failed to save project:", error);
     } finally {
-      setIsSaving(false)
+      setIsSaving(false);
     }
-  }, [project, isSaving, setIsDirty])
+  }, [project, isSaving, setIsDirty]);
 
   if (isLoading) {
     return (
@@ -138,9 +142,9 @@ export function EditorPage() {
           <p className="text-text-muted">Loading project...</p>
         </div>
       </div>
-    )
+    );
   }
-  
+
   return (
     <div className="h-screen bg-background flex flex-col overflow-hidden">
       <header className="h-14 bg-surface border-b border-border flex items-center justify-between px-4 flex-shrink-0">
@@ -152,9 +156,9 @@ export function EditorPage() {
             <ArrowLeft className="w-5 h-5" />
             <span className="text-sm font-medium">Back</span>
           </Link>
-          
+
           <div className="h-6 w-px bg-border" />
-          
+
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-lg flex items-center justify-center">
               <span className="text-white text-sm font-bold">S</span>
@@ -162,7 +166,9 @@ export function EditorPage() {
             <div>
               <h1 className="text-sm font-semibold text-text-primary flex items-center gap-2">
                 {project?.name}
-                {isDirty && <span className="w-2 h-2 bg-amber-500 rounded-full" />}
+                {isDirty && (
+                  <span className="w-2 h-2 bg-amber-500 rounded-full" />
+                )}
               </h1>
             </div>
           </div>
@@ -185,7 +191,9 @@ export function EditorPage() {
             <Copy className="w-4 h-4" />
           </button>
           <button
-            onClick={() => currentSlideId && slides.length > 1 && deleteSlide(currentSlideId)}
+            onClick={() =>
+              currentSlideId && slides.length > 1 && deleteSlide(currentSlideId)
+            }
             disabled={slides.length <= 1}
             className="p-2 rounded text-red-400 hover:bg-red-500/10 disabled:opacity-30 transition-colors"
             title="Delete"
@@ -222,14 +230,12 @@ export function EditorPage() {
         <ElementsPanel />
 
         <div className="flex-1 bg-gradient-to-br from-slate-100 to-slate-200 overflow-hidden relative flex flex-col">
-          <div
-            className="flex-1 flex items-center gap-8 px-8 overflow-x-auto overflow-y-hidden snap-x snap-mandatory scrollbar-hide"
-          >
+          <div className="flex-1 flex items-center gap-8 px-8 overflow-x-auto overflow-y-hidden snap-x snap-mandatory scrollbar-hide">
             {slides.map((slide, index) => (
-              <div 
-                key={slide.id} 
+              <div
+                key={slide.id}
                 className="snap-center flex-shrink-0 h-[calc(100%-30px)]"
-                style={{ minWidth: 'fit-content' }}
+                style={{ minWidth: "fit-content" }}
               >
                 <TemplateSlide
                   slide={slide}
@@ -259,5 +265,5 @@ export function EditorPage() {
         <ConfigPanel />
       </div>
     </div>
-  )
+  );
 }

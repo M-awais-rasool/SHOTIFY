@@ -1,76 +1,108 @@
-import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { useAuthStore } from '@/stores/authStore'
-import { authApi } from '@/lib/api'
-import { Eye, EyeOff, Loader2, Check, ArrowRight, Sparkles } from 'lucide-react'
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuthStore } from "@/stores/authStore";
+import { authApi } from "@/lib/api";
+import {
+  Eye,
+  EyeOff,
+  Loader2,
+  Check,
+  ArrowRight,
+  Sparkles,
+} from "lucide-react";
 
 export default function RegisterPage() {
-  const navigate = useNavigate()
-  const { setAuth } = useAuthStore()
-  const [isLoading, setIsLoading] = useState(false)
-  const [showPassword, setShowPassword] = useState(false)
-  const [error, setError] = useState('')
+  const navigate = useNavigate();
+  const { setAuth } = useAuthStore();
+  const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState("");
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-  })
+    name: "",
+    email: "",
+    password: "",
+  });
 
   const passwordRequirements = [
-    { label: 'At least 8 characters', met: formData.password.length >= 8 },
-  ]
+    { label: "At least 8 characters", met: formData.password.length >= 8 },
+  ];
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError('')
+    e.preventDefault();
+    setError("");
 
     if (formData.password.length < 8) {
-      setError('Password must be at least 8 characters')
-      return
+      setError("Password must be at least 8 characters");
+      return;
     }
 
-    setIsLoading(true)
+    setIsLoading(true);
 
     try {
-      const response = await authApi.register(formData)
-      const { token, user } = response.data.data
-      setAuth(user, token)
-      navigate('/dashboard')
+      const response = await authApi.register(formData);
+      const { token, user } = response.data.data;
+      setAuth(user, token);
+      navigate("/dashboard");
     } catch (err: unknown) {
-      const error = err as { response?: { data?: { error?: string } } }
-      setError(error.response?.data?.error || 'Registration failed. Please try again.')
+      const error = err as { response?: { data?: { error?: string } } };
+      setError(
+        error.response?.data?.error || "Registration failed. Please try again."
+      );
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <div className="w-full max-w-6xl flex flex-col lg:flex-row gap-8 lg:gap-16 items-center animate-blur-in px-4">
       <div className="flex-1 max-w-lg lg:max-w-none">
-       <div className="flex items-center gap-3 mb-8 animate-slide-up opacity-0 stagger-1" style={{ animationFillMode: 'forwards' }}>
-          <img src="/logo.png" alt="Logo" className="w-20 h-20 hidden sm:block" style={{marginLeft: -20, marginRight: -14}}/>
+        <div
+          className="flex items-center gap-3 mb-8 animate-slide-up opacity-0 stagger-1"
+          style={{ animationFillMode: "forwards" }}
+        >
+          <img
+            src="/logo.png"
+            alt="Logo"
+            className="w-20 h-20 hidden sm:block"
+            style={{ marginLeft: -20, marginRight: -14 }}
+          />
           <span className="text-3xl font-bold text-foreground">Shotify</span>
         </div>
 
-        <div className="animate-slide-up opacity-0 stagger-2" style={{ animationFillMode: 'forwards' }}>
+        <div
+          className="animate-slide-up opacity-0 stagger-2"
+          style={{ animationFillMode: "forwards" }}
+        >
           <h1 className="text-3xl lg:text-4xl font-bold text-foreground leading-tight mb-4">
-            Start creating<br />
-            <span className="bg-gradient-to-r from-emerald-400 to-emerald-500 bg-clip-text text-transparent">amazing</span><br />
+            Start creating
+            <br />
+            <span className="bg-gradient-to-r from-emerald-400 to-emerald-500 bg-clip-text text-transparent">
+              amazing
+            </span>
+            <br />
             screenshots
           </h1>
           <p className="text-lg text-muted-foreground mb-8 max-w-md">
-            Join our community and transform your screenshots into professional, share-worthy images.
+            Join our community and transform your screenshots into professional,
+            share-worthy images.
           </p>
         </div>
 
-        <div className="space-y-4 animate-slide-up opacity-0 stagger-3" style={{ animationFillMode: 'forwards' }}>
+        <div
+          className="space-y-4 animate-slide-up opacity-0 stagger-3"
+          style={{ animationFillMode: "forwards" }}
+        >
           <div className="flex items-start gap-3">
             <div className="p-2 bg-primary/10 rounded-lg flex-shrink-0">
               <Sparkles className="w-5 h-5 text-primary" />
             </div>
             <div>
-              <h3 className="font-semibold text-foreground mb-1">Professional Templates</h3>
-              <p className="text-sm text-muted-foreground">Access beautiful, ready-to-use templates for iOS and Android</p>
+              <h3 className="font-semibold text-foreground mb-1">
+                Professional Templates
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                Access beautiful, ready-to-use templates for iOS and Android
+              </p>
             </div>
           </div>
           <div className="flex items-start gap-3">
@@ -78,8 +110,12 @@ export default function RegisterPage() {
               <Check className="w-5 h-5 text-primary" />
             </div>
             <div>
-              <h3 className="font-semibold text-foreground mb-1">Free to Start</h3>
-              <p className="text-sm text-muted-foreground">No credit card required. Start creating immediately</p>
+              <h3 className="font-semibold text-foreground mb-1">
+                Free to Start
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                No credit card required. Start creating immediately
+              </p>
             </div>
           </div>
         </div>
@@ -87,9 +123,16 @@ export default function RegisterPage() {
 
       <div className="w-full max-w-md">
         <div className="glass-card p-8 lg:p-10 hover:shadow-xl transition-shadow duration-300">
-          <div className="text-center mb-8 animate-slide-up opacity-0 stagger-1" style={{ animationFillMode: 'forwards' }}>
-            <h2 className="text-2xl font-bold text-foreground mb-2">Create your account</h2>
-            <p className="text-muted-foreground">Get started with Shotify for free</p>
+          <div
+            className="text-center mb-8 animate-slide-up opacity-0 stagger-1"
+            style={{ animationFillMode: "forwards" }}
+          >
+            <h2 className="text-2xl font-bold text-foreground mb-2">
+              Create your account
+            </h2>
+            <p className="text-muted-foreground">
+              Get started with Shotify for free
+            </p>
           </div>
 
           {error && (
@@ -101,7 +144,10 @@ export default function RegisterPage() {
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-3 mb-6 animate-slide-up opacity-0 stagger-2" style={{ animationFillMode: 'forwards' }}>
+          <div
+            className="grid grid-cols-2 gap-3 mb-6 animate-slide-up opacity-0 stagger-2"
+            style={{ animationFillMode: "forwards" }}
+          >
             <button
               type="button"
               className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-border bg-card
@@ -125,33 +171,50 @@ export default function RegisterPage() {
                   fill="#EA4335"
                 />
               </svg>
-              <span className="text-sm font-medium text-foreground">Google</span>
+              <span className="text-sm font-medium text-foreground">
+                Google
+              </span>
             </button>
             <button
               type="button"
               className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-border bg-card
                          hover:bg-secondary hover:border-primary/30 transition-all duration-200 group shadow-sm"
             >
-              <svg className="w-5 h-5 text-foreground" fill="currentColor" viewBox="0 0 24 24">
+              <svg
+                className="w-5 h-5 text-foreground"
+                fill="currentColor"
+                viewBox="0 0 24 24"
+              >
                 <path
                   fillRule="evenodd"
                   d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"
                   clipRule="evenodd"
                 />
               </svg>
-              <span className="text-sm font-medium text-foreground">GitHub</span>
+              <span className="text-sm font-medium text-foreground">
+                GitHub
+              </span>
             </button>
           </div>
 
-          <div className="flex items-center gap-4 mb-6 animate-slide-up opacity-0 stagger-2" style={{ animationFillMode: 'forwards' }}>
+          <div
+            className="flex items-center gap-4 mb-6 animate-slide-up opacity-0 stagger-2"
+            style={{ animationFillMode: "forwards" }}
+          >
             <div className="flex-1 h-px bg-border" />
             <span className="text-muted-foreground text-sm">or</span>
             <div className="flex-1 h-px bg-border" />
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="animate-slide-up opacity-0 stagger-3" style={{ animationFillMode: 'forwards' }}>
-              <label htmlFor="name" className="block text-sm font-medium text-foreground mb-2">
+            <div
+              className="animate-slide-up opacity-0 stagger-3"
+              style={{ animationFillMode: "forwards" }}
+            >
+              <label
+                htmlFor="name"
+                className="block text-sm font-medium text-foreground mb-2"
+              >
                 Full name
               </label>
               <input
@@ -160,7 +223,9 @@ export default function RegisterPage() {
                 required
                 autoComplete="name"
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
                 className="w-full px-4 py-3 bg-secondary border border-border rounded-xl text-foreground placeholder:text-muted-foreground
                            focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20
                            transition-all duration-200 shadow-sm"
@@ -168,8 +233,14 @@ export default function RegisterPage() {
               />
             </div>
 
-            <div className="animate-slide-up opacity-0 stagger-3" style={{ animationFillMode: 'forwards' }}>
-              <label htmlFor="email" className="block text-sm font-medium text-foreground mb-2">
+            <div
+              className="animate-slide-up opacity-0 stagger-3"
+              style={{ animationFillMode: "forwards" }}
+            >
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-foreground mb-2"
+              >
                 Email address
               </label>
               <input
@@ -178,7 +249,9 @@ export default function RegisterPage() {
                 required
                 autoComplete="email"
                 value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, email: e.target.value })
+                }
                 className="w-full px-4 py-3 bg-secondary border border-border rounded-xl text-foreground placeholder:text-muted-foreground
                            focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20
                            transition-all duration-200 shadow-sm"
@@ -186,18 +259,26 @@ export default function RegisterPage() {
               />
             </div>
 
-            <div className="animate-slide-up opacity-0 stagger-3" style={{ animationFillMode: 'forwards' }}>
-              <label htmlFor="password" className="block text-sm font-medium text-foreground mb-2">
+            <div
+              className="animate-slide-up opacity-0 stagger-3"
+              style={{ animationFillMode: "forwards" }}
+            >
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-foreground mb-2"
+              >
                 Password
               </label>
               <div className="relative">
                 <input
                   id="password"
-                  type={showPassword ? 'text' : 'password'}
+                  type={showPassword ? "text" : "password"}
                   required
                   autoComplete="new-password"
                   value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, password: e.target.value })
+                  }
                   className="w-full px-4 py-3 pr-12 bg-secondary border border-border rounded-xl text-foreground placeholder:text-muted-foreground
                              focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20
                              transition-all duration-200 shadow-sm"
@@ -208,23 +289,33 @@ export default function RegisterPage() {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  {showPassword ? (
+                    <EyeOff className="w-5 h-5" />
+                  ) : (
+                    <Eye className="w-5 h-5" />
+                  )}
                 </button>
               </div>
-              
+
               <div className="mt-3 space-y-2">
                 {passwordRequirements.map((req, i) => (
                   <div key={i} className="flex items-center gap-2">
                     <div
                       className={`w-4 h-4 rounded-full flex items-center justify-center transition-all duration-200 ${
-                        req.met ? 'bg-primary scale-100' : 'bg-secondary scale-95'
+                        req.met
+                          ? "bg-primary scale-100"
+                          : "bg-secondary scale-95"
                       }`}
                     >
                       {req.met && <Check className="w-3 h-3 text-white" />}
                     </div>
-                    <span className={`text-xs transition-colors ${
-                      req.met ? 'text-foreground font-medium' : 'text-muted-foreground'
-                    }`}>
+                    <span
+                      className={`text-xs transition-colors ${
+                        req.met
+                          ? "text-foreground font-medium"
+                          : "text-muted-foreground"
+                      }`}
+                    >
                       {req.label}
                     </span>
                   </div>
@@ -240,7 +331,7 @@ export default function RegisterPage() {
                          transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed
                          flex items-center justify-center gap-2 group shadow-lg shadow-primary/25
                          animate-slide-up opacity-0 stagger-4"
-              style={{ animationFillMode: 'forwards' }}
+              style={{ animationFillMode: "forwards" }}
             >
               {isLoading ? (
                 <>
@@ -256,8 +347,11 @@ export default function RegisterPage() {
             </button>
           </form>
 
-          <p className="mt-6 text-center text-sm text-muted-foreground animate-slide-up opacity-0 stagger-5" style={{ animationFillMode: 'forwards' }}>
-            Already have an account?{' '}
+          <p
+            className="mt-6 text-center text-sm text-muted-foreground animate-slide-up opacity-0 stagger-5"
+            style={{ animationFillMode: "forwards" }}
+          >
+            Already have an account?{" "}
             <Link
               to="/login"
               className="font-semibold text-primary hover:text-primary/80 transition-colors"
@@ -267,21 +361,44 @@ export default function RegisterPage() {
           </p>
         </div>
 
-        <div className="mt-6 flex items-center justify-center gap-6 text-muted-foreground text-xs animate-slide-up opacity-0 stagger-5" style={{ animationFillMode: 'forwards' }}>
+        <div
+          className="mt-6 flex items-center justify-center gap-6 text-muted-foreground text-xs animate-slide-up opacity-0 stagger-5"
+          style={{ animationFillMode: "forwards" }}
+        >
           <div className="flex items-center gap-1.5">
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+              />
             </svg>
             <span>SSL Secured</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+              />
             </svg>
             <span>Privacy Protected</span>
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 }
