@@ -1,6 +1,11 @@
-import { useState } from 'react'
-import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@headlessui/react'
-import { useEditorStore } from '@/stores/editorStore'
+import { useState } from "react";
+import {
+  Dialog,
+  DialogBackdrop,
+  DialogPanel,
+  DialogTitle,
+} from "@headlessui/react";
+import { useEditorStore } from "@/stores/editorStore";
 import {
   Layers,
   Eye,
@@ -17,27 +22,68 @@ import {
   Sparkles,
   X,
   GripVertical,
-} from 'lucide-react'
+} from "lucide-react";
 
 const layerIcons: Record<string, React.ReactNode> = {
   text: <Type className="w-4 h-4" />,
   image: <Image className="w-4 h-4" />,
   screenshot: <Smartphone className="w-4 h-4" />,
   shape: <Square className="w-4 h-4" />,
-}
+};
 
 const elementTypes = [
-  { type: 'text', name: 'Text', icon: <Type className="w-6 h-6" />, color: 'emerald', description: 'Add headings & paragraphs' },
-  { type: 'screenshot', name: 'Screenshot', icon: <Smartphone className="w-6 h-6" />, color: 'purple', description: 'Device mockups' },
-  { type: 'shape', name: 'Shape', icon: <Square className="w-6 h-6" />, color: 'pink', description: 'Rectangles & circles' },
-]
+  {
+    type: "text",
+    name: "Text",
+    icon: <Type className="w-6 h-6" />,
+    color: "emerald",
+    description: "Add headings & paragraphs",
+  },
+  {
+    type: "screenshot",
+    name: "Screenshot",
+    icon: <Smartphone className="w-6 h-6" />,
+    color: "purple",
+    description: "Device mockups",
+  },
+  {
+    type: "shape",
+    name: "Shape",
+    icon: <Square className="w-6 h-6" />,
+    color: "pink",
+    description: "Rectangles & circles",
+  },
+];
 
-const colorVariants: Record<string, { bg: string; text: string; border: string; hover: string }> = {
-  emerald: { bg: 'bg-emerald-500/10', text: 'text-emerald-500', border: 'border-emerald-500/30', hover: 'hover:bg-emerald-500/20' },
-  blue: { bg: 'bg-blue-500/10', text: 'text-blue-500', border: 'border-blue-500/30', hover: 'hover:bg-blue-500/20' },
-  purple: { bg: 'bg-purple-500/10', text: 'text-purple-500', border: 'border-purple-500/30', hover: 'hover:bg-purple-500/20' },
-  pink: { bg: 'bg-pink-500/10', text: 'text-pink-500', border: 'border-pink-500/30', hover: 'hover:bg-pink-500/20' },
-}
+const colorVariants: Record<
+  string,
+  { bg: string; text: string; border: string; hover: string }
+> = {
+  emerald: {
+    bg: "bg-emerald-500/10",
+    text: "text-emerald-500",
+    border: "border-emerald-500/30",
+    hover: "hover:bg-emerald-500/20",
+  },
+  blue: {
+    bg: "bg-blue-500/10",
+    text: "text-blue-500",
+    border: "border-blue-500/30",
+    hover: "hover:bg-blue-500/20",
+  },
+  purple: {
+    bg: "bg-purple-500/10",
+    text: "text-purple-500",
+    border: "border-purple-500/30",
+    hover: "hover:bg-purple-500/20",
+  },
+  pink: {
+    bg: "bg-pink-500/10",
+    text: "text-pink-500",
+    border: "border-pink-500/30",
+    hover: "hover:bg-pink-500/20",
+  },
+};
 
 export default function ElementsPanel() {
   const {
@@ -48,47 +94,51 @@ export default function ElementsPanel() {
     updateLayer,
     deleteLayer,
     addLayer,
-  } = useEditorStore()
+  } = useEditorStore();
 
-  const [isCollapsed, setIsCollapsed] = useState(false)
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [hoveredLayer, setHoveredLayer] = useState<string | null>(null)
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [hoveredLayer, setHoveredLayer] = useState<string | null>(null);
 
-  const currentSlide = slides.find(s => s.id === currentSlideId)
-  const layers = currentSlide?.layers || []
-  const sortedLayers = [...layers].sort((a, b) => b.zIndex - a.zIndex)
+  const currentSlide = slides.find((s) => s.id === currentSlideId);
+  const layers = currentSlide?.layers || [];
+  const sortedLayers = [...layers].sort((a, b) => b.zIndex - a.zIndex);
 
-  const handleLayerUpdate = (layerId: string, updates: Record<string, unknown>) => {
+  const handleLayerUpdate = (
+    layerId: string,
+    updates: Record<string, unknown>
+  ) => {
     if (currentSlideId) {
-      updateLayer(currentSlideId, layerId, updates)
+      updateLayer(currentSlideId, layerId, updates);
     }
-  }
+  };
 
   const handleDeleteLayer = (layerId: string) => {
     if (currentSlideId) {
-      deleteLayer(currentSlideId, layerId)
+      deleteLayer(currentSlideId, layerId);
     }
-  }
+  };
 
   const handleAddElement = (elementType: string) => {
-    if (!currentSlideId) return
+    if (!currentSlideId) return;
 
-    const currentSlide = slides.find(s => s.id === currentSlideId)
-    if (!currentSlide) return
+    const currentSlide = slides.find((s) => s.id === currentSlideId);
+    if (!currentSlide) return;
 
-    const maxZIndex = currentSlide.layers.length > 0 
-      ? Math.max(...currentSlide.layers.map(l => l.zIndex))
-      : 0
+    const maxZIndex =
+      currentSlide.layers.length > 0
+        ? Math.max(...currentSlide.layers.map((l) => l.zIndex))
+        : 0;
 
-    const newLayerId = `layer-${Date.now()}`
-    let newLayer: any
+    const newLayerId = `layer-${Date.now()}`;
+    let newLayer: any;
 
     switch (elementType) {
-      case 'text':
+      case "text":
         newLayer = {
           id: newLayerId,
-          type: 'text',
-          name: 'Text',
+          type: "text",
+          name: "Text",
           x: currentSlide.canvas.width / 2,
           y: currentSlide.canvas.height / 2,
           width: 400,
@@ -99,27 +149,27 @@ export default function ElementsPanel() {
           opacity: 1,
           zIndex: maxZIndex + 1,
           properties: {
-            content: 'New Text',
-            fontFamily: 'Inter',
+            content: "New Text",
+            fontFamily: "Inter",
             fontSize: 48,
-            fontWeight: '700',
-            color: '#000000',
-            align: 'center',
+            fontWeight: "700",
+            color: "#000000",
+            align: "center",
             lineHeight: 1.2,
-            position: 'center',
-            anchorX: 'center',
-            anchorY: 'center',
+            position: "center",
+            anchorX: "center",
+            anchorY: "center",
             offsetX: 0,
             offsetY: currentSlide.canvas.height / 2,
-          }
-        }
-        break
+          },
+        };
+        break;
 
-      case 'image':
+      case "image":
         newLayer = {
           id: newLayerId,
-          type: 'image',
-          name: 'Image',
+          type: "image",
+          name: "Image",
           x: currentSlide.canvas.width / 2,
           y: currentSlide.canvas.height / 2,
           width: 300,
@@ -130,29 +180,29 @@ export default function ElementsPanel() {
           opacity: 1,
           zIndex: maxZIndex + 1,
           properties: {
-            src: '',
-            placeholder: '',
+            src: "",
+            placeholder: "",
             borderRadius: 12,
             shadow: true,
             shadowBlur: 20,
-            shadowColor: 'rgba(0,0,0,0.25)',
+            shadowColor: "rgba(0,0,0,0.25)",
             shadowOffsetX: 0,
             shadowOffsetY: 4,
-            position: 'center',
-            anchorX: 'center',
-            anchorY: 'center',
+            position: "center",
+            anchorX: "center",
+            anchorY: "center",
             offsetX: 0,
             offsetY: currentSlide.canvas.height / 2,
             scale: 1,
-          }
-        }
-        break
+          },
+        };
+        break;
 
-      case 'screenshot':
+      case "screenshot":
         newLayer = {
           id: newLayerId,
-          type: 'screenshot',
-          name: 'Screenshot',
+          type: "screenshot",
+          name: "Screenshot",
           x: currentSlide.canvas.width / 2,
           y: currentSlide.canvas.height / 2,
           width: 300,
@@ -163,29 +213,29 @@ export default function ElementsPanel() {
           opacity: 1,
           zIndex: maxZIndex + 1,
           properties: {
-            src: '',
-            placeholder: '',
+            src: "",
+            placeholder: "",
             borderRadius: 24,
             shadow: true,
             shadowBlur: 30,
-            shadowColor: 'rgba(0,0,0,0.3)',
+            shadowColor: "rgba(0,0,0,0.3)",
             shadowOffsetX: 0,
             shadowOffsetY: 8,
-            position: 'center',
-            anchorX: 'center',
-            anchorY: 'center',
+            position: "center",
+            anchorX: "center",
+            anchorY: "center",
             offsetX: 0,
             offsetY: currentSlide.canvas.height / 2,
             scale: 1,
-          }
-        }
-        break
+          },
+        };
+        break;
 
-      case 'shape':
+      case "shape":
         newLayer = {
           id: newLayerId,
-          type: 'shape',
-          name: 'Shape',
+          type: "shape",
+          name: "Shape",
           x: currentSlide.canvas.width / 2,
           y: currentSlide.canvas.height / 2,
           width: 200,
@@ -196,30 +246,34 @@ export default function ElementsPanel() {
           opacity: 1,
           zIndex: maxZIndex + 1,
           properties: {
-            fill: '#4ADE80',
-            stroke: '',
+            fill: "#4ADE80",
+            stroke: "",
             strokeWidth: 0,
             cornerRadius: 12,
-            shapeType: 'rounded',
-            position: 'center',
-            anchorX: 'center',
-            anchorY: 'center',
+            shapeType: "rounded",
+            position: "center",
+            anchorX: "center",
+            anchorY: "center",
             offsetX: 0,
             offsetY: currentSlide.canvas.height / 2,
-          }
-        }
-        break
+          },
+        };
+        break;
 
       default:
-        return
+        return;
     }
 
-    addLayer(currentSlideId, newLayer)
-    setIsModalOpen(false)
-  }
+    addLayer(currentSlideId, newLayer);
+    setIsModalOpen(false);
+  };
 
   return (
-    <div className={`bg-gradient-to-b from-background to-background/95 border-r border-border/50 h-full flex flex-col transition-all duration-300 ease-out ${isCollapsed ? 'w-14' : 'w-72'}`}>
+    <div
+      className={`bg-gradient-to-b from-background to-background/95 border-r border-border/50 h-full flex flex-col transition-all duration-300 ease-out ${
+        isCollapsed ? "w-14" : "w-72"
+      }`}
+    >
       <div className="px-4 py-4 border-b border-border/50 flex items-center justify-between backdrop-blur-sm">
         {!isCollapsed && (
           <div className="flex items-center gap-3">
@@ -227,8 +281,12 @@ export default function ElementsPanel() {
               <Layers className="w-4 h-4 text-emerald-500" />
             </div>
             <div>
-              <span className="text-sm font-semibold text-text-primary block">Elements</span>
-              <span className="text-xs text-text-muted">{layers.length} layers</span>
+              <span className="text-sm font-semibold text-text-primary block">
+                Elements
+              </span>
+              <span className="text-xs text-text-muted">
+                {layers.length} layers
+              </span>
             </div>
           </div>
         )}
@@ -236,7 +294,11 @@ export default function ElementsPanel() {
           onClick={() => setIsCollapsed(!isCollapsed)}
           className="p-2 hover:bg-surface/80 rounded-xl transition-all duration-200 hover:scale-105"
         >
-          <ChevronDown className={`w-4 h-4 text-text-muted transition-transform duration-300 ${isCollapsed ? '-rotate-90' : ''}`} />
+          <ChevronDown
+            className={`w-4 h-4 text-text-muted transition-transform duration-300 ${
+              isCollapsed ? "-rotate-90" : ""
+            }`}
+          />
         </button>
       </div>
 
@@ -254,21 +316,23 @@ export default function ElementsPanel() {
                   transition-all duration-200 ease-out
                   ${
                     selectedLayerId === layer.id
-                      ? 'bg-gradient-to-r from-emerald-500/15 to-emerald-500/5 border border-emerald-500/40 shadow-sm shadow-emerald-500/10'
-                      : 'hover:bg-surface/80 border border-transparent hover:border-border/50'
+                      ? "bg-gradient-to-r from-emerald-500/15 to-emerald-500/5 border border-emerald-500/40 shadow-sm shadow-emerald-500/10"
+                      : "hover:bg-surface/80 border border-transparent hover:border-border/50"
                   }
-                  ${!layer.visible ? 'opacity-40' : ''}
-                  ${hoveredLayer === layer.id ? 'translate-x-1' : ''}
+                  ${!layer.visible ? "opacity-40" : ""}
+                  ${hoveredLayer === layer.id ? "translate-x-1" : ""}
                 `}
                 style={{ animationDelay: `${index * 50}ms` }}
               >
                 <GripVertical className="w-3 h-3 text-text-muted/30 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab" />
 
-                <div className={`p-2 rounded-lg transition-all duration-200 ${
-                  selectedLayerId === layer.id 
-                    ? 'bg-emerald-500/20 text-emerald-500 shadow-sm' 
-                    : 'bg-surface/80 text-text-secondary group-hover:bg-surface'
-                }`}>
+                <div
+                  className={`p-2 rounded-lg transition-all duration-200 ${
+                    selectedLayerId === layer.id
+                      ? "bg-emerald-500/20 text-emerald-500 shadow-sm"
+                      : "bg-surface/80 text-text-secondary group-hover:bg-surface"
+                  }`}
+                >
                   {layerIcons[layer.type] || <Square className="w-4 h-4" />}
                 </div>
 
@@ -276,19 +340,25 @@ export default function ElementsPanel() {
                   <span className="text-sm font-medium truncate text-text-primary block">
                     {layer.name}
                   </span>
-                  <span className="text-xs text-text-muted capitalize">{layer.type}</span>
+                  <span className="text-xs text-text-muted capitalize">
+                    {layer.type}
+                  </span>
                 </div>
 
-                <div className={`flex items-center gap-0.5 transition-all duration-200 ${
-                  hoveredLayer === layer.id || selectedLayerId === layer.id ? 'opacity-100' : 'opacity-0'
-                }`}>
+                <div
+                  className={`flex items-center gap-0.5 transition-all duration-200 ${
+                    hoveredLayer === layer.id || selectedLayerId === layer.id
+                      ? "opacity-100"
+                      : "opacity-0"
+                  }`}
+                >
                   <button
                     onClick={(e) => {
-                      e.stopPropagation()
-                      handleLayerUpdate(layer.id, { visible: !layer.visible })
+                      e.stopPropagation();
+                      handleLayerUpdate(layer.id, { visible: !layer.visible });
                     }}
                     className="p-1.5 rounded-lg hover:bg-background/80 transition-colors"
-                    title={layer.visible ? 'Hide' : 'Show'}
+                    title={layer.visible ? "Hide" : "Show"}
                   >
                     {layer.visible ? (
                       <Eye className="w-3.5 h-3.5 text-text-muted hover:text-text-primary transition-colors" />
@@ -298,11 +368,11 @@ export default function ElementsPanel() {
                   </button>
                   <button
                     onClick={(e) => {
-                      e.stopPropagation()
-                      handleLayerUpdate(layer.id, { locked: !layer.locked })
+                      e.stopPropagation();
+                      handleLayerUpdate(layer.id, { locked: !layer.locked });
                     }}
                     className="p-1.5 rounded-lg hover:bg-background/80 transition-colors"
-                    title={layer.locked ? 'Unlock' : 'Lock'}
+                    title={layer.locked ? "Unlock" : "Lock"}
                   >
                     {layer.locked ? (
                       <Lock className="w-3.5 h-3.5 text-amber-500" />
@@ -313,8 +383,8 @@ export default function ElementsPanel() {
                   {!layer.locked && (
                     <button
                       onClick={(e) => {
-                        e.stopPropagation()
-                        handleDeleteLayer(layer.id)
+                        e.stopPropagation();
+                        handleDeleteLayer(layer.id);
                       }}
                       className="p-1.5 rounded-lg hover:bg-red-500/10 transition-colors group/delete"
                       title="Delete"
@@ -332,8 +402,12 @@ export default function ElementsPanel() {
               <div className="w-16 h-16 bg-gradient-to-br from-surface to-border/50 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-inner">
                 <Layers className="w-7 h-7 text-text-muted/50" />
               </div>
-              <p className="text-sm font-medium text-text-muted mb-1">No elements yet</p>
-              <p className="text-xs text-text-muted/70">Click below to add your first element</p>
+              <p className="text-sm font-medium text-text-muted mb-1">
+                No elements yet
+              </p>
+              <p className="text-xs text-text-muted/70">
+                Click below to add your first element
+              </p>
             </div>
           )}
         </div>
@@ -362,11 +436,13 @@ export default function ElementsPanel() {
         </div>
       )}
 
-      <Dialog open={isModalOpen} onClose={() => setIsModalOpen(false)} className="relative z-50">
-        <DialogBackdrop 
-          className="fixed inset-0 bg-black/50 backdrop-blur-md transition-opacity duration-300" 
-        />
-        
+      <Dialog
+        open={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        className="relative z-50"
+      >
+        <DialogBackdrop className="fixed inset-0 bg-black/50 backdrop-blur-md transition-opacity duration-300" />
+
         <div className="fixed inset-0 flex items-center justify-center p-4">
           <DialogPanel className="relative bg-gradient-to-b from-background to-surface/95 rounded-3xl shadow-2xl p-0 w-full max-w-lg mx-auto border border-border/50 overflow-hidden transition-all duration-300 scale-100">
             <div className="relative px-6 pt-6 pb-4 border-b border-border/50">
@@ -380,7 +456,9 @@ export default function ElementsPanel() {
                     <DialogTitle className="text-lg font-bold text-text-primary">
                       Add Element
                     </DialogTitle>
-                    <p className="text-xs text-text-muted">Choose an element type to add</p>
+                    <p className="text-xs text-text-muted">
+                      Choose an element type to add
+                    </p>
                   </div>
                 </div>
                 <button
@@ -395,7 +473,7 @@ export default function ElementsPanel() {
             <div className="p-6">
               <div className="grid grid-cols-2 gap-4">
                 {elementTypes.map((el, index) => {
-                  const colors = colorVariants[el.color]
+                  const colors = colorVariants[el.color];
                   return (
                     <button
                       key={el.type}
@@ -410,7 +488,9 @@ export default function ElementsPanel() {
                       `}
                       style={{ animationDelay: `${index * 75}ms` }}
                     >
-                      <div className={`p-4 rounded-2xl ${colors.bg} ${colors.text} transition-all duration-200 group-hover:scale-110 shadow-sm`}>
+                      <div
+                        className={`p-4 rounded-2xl ${colors.bg} ${colors.text} transition-all duration-200 group-hover:scale-110 shadow-sm`}
+                      >
                         {el.icon}
                       </div>
                       <div className="text-center">
@@ -422,7 +502,7 @@ export default function ElementsPanel() {
                         </span>
                       </div>
                     </button>
-                  )
+                  );
                 })}
               </div>
             </div>
@@ -439,5 +519,5 @@ export default function ElementsPanel() {
         </div>
       </Dialog>
     </div>
-  )
+  );
 }

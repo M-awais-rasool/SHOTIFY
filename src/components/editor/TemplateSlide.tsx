@@ -1,107 +1,133 @@
-import { useEffect, useRef, useState } from 'react'
-import type { LayerConfig, TextProperties, ImageProperties, ShapeProperties } from '@/types'
-import { useEditorStore } from '@/stores/editorStore'
-import { uploadApi } from '@/lib/api'
-import { calculateLayerStyle, LayoutConfig, normalizeLayerProperties, TemplateSlideProps } from '@/lib/layerUtils'
-import { ImagePlus, Smartphone, Loader2 } from 'lucide-react'
+import { useEffect, useRef, useState } from "react";
+import type {
+  LayerConfig,
+  TextProperties,
+  ImageProperties,
+  ShapeProperties,
+} from "@/types";
+import { useEditorStore } from "@/stores/editorStore";
+import { uploadApi } from "@/lib/api";
+import {
+  calculateLayerStyle,
+  LayoutConfig,
+  normalizeLayerProperties,
+  TemplateSlideProps,
+} from "@/lib/layerUtils";
+import { ImagePlus, Smartphone, Loader2 } from "lucide-react";
 
-export default function TemplateSlide({ slide, isActive, onClick }: TemplateSlideProps) {
-  const { selectedLayerId, setSelectedLayerId, currentSlideId, updateLayer } = useEditorStore()
-  const fileInputRef = useRef<HTMLInputElement>(null)
-  const uploadingLayerId = useRef<string | null>(null)
-  const containerRef = useRef<HTMLDivElement>(null)
-  const [loadingLayers, setLoadingLayers] = useState<Set<string>>(new Set())
+export default function TemplateSlide({
+  slide,
+  isActive,
+  onClick,
+}: TemplateSlideProps) {
+  const { selectedLayerId, setSelectedLayerId, currentSlideId, updateLayer } =
+    useEditorStore();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const uploadingLayerId = useRef<string | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [loadingLayers, setLoadingLayers] = useState<Set<string>>(new Set());
 
   const getScaleFactor = () => {
-    if (!containerRef.current) return 1
-    const renderedWidth = containerRef.current.offsetWidth
-    return renderedWidth / slide.canvas.width
-  }
+    if (!containerRef.current) return 1;
+    const renderedWidth = containerRef.current.offsetWidth;
+    return renderedWidth / slide.canvas.width;
+  };
 
   const handleLayerClick = (e: React.MouseEvent, layerId: string) => {
-    e.stopPropagation()
+    e.stopPropagation();
     if (slide.id !== currentSlideId) {
-      onClick()
+      onClick();
     }
-    setSelectedLayerId(layerId)
-  }
+    setSelectedLayerId(layerId);
+  };
 
   const handleSlideClick = () => {
-    onClick()
-    setSelectedLayerId(null)
-  }
+    onClick();
+    setSelectedLayerId(null);
+  };
 
   const handleImageUpload = async (layerId: string, file: File) => {
-    setLoadingLayers(prev => new Set(prev).add(layerId))
-    
+    setLoadingLayers((prev) => new Set(prev).add(layerId));
+
     try {
-      const response = await uploadApi.uploadImage(file)
-      const imageUrl = response.data.data.url
-      
-      const currentSlide = useEditorStore.getState().slides.find(s => s.id === slide.id)
-      const layer = currentSlide?.layers.find(l => l.id === layerId)
-      
+      const response = await uploadApi.uploadImage(file);
+      const imageUrl = response.data.data.url;
+
+      const currentSlide = useEditorStore
+        .getState()
+        .slides.find((s) => s.id === slide.id);
+      const layer = currentSlide?.layers.find((l) => l.id === layerId);
+
       if (layer) {
         updateLayer(slide.id, layerId, {
           properties: {
             ...layer.properties,
             src: imageUrl,
           },
-        })
+        });
       }
     } catch (error) {
-      console.error('Failed to upload image:', error)
+      console.error("Failed to upload image:", error);
     } finally {
-      setLoadingLayers(prev => {
-        const newSet = new Set(prev)
-        newSet.delete(layerId)
-        return newSet
-      })
+      setLoadingLayers((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(layerId);
+        return newSet;
+      });
     }
-  }
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
+    const file = e.target.files?.[0];
     if (file && uploadingLayerId.current) {
-      handleImageUpload(uploadingLayerId.current, file)
+      handleImageUpload(uploadingLayerId.current, file);
     }
-    uploadingLayerId.current = null
+    uploadingLayerId.current = null;
     if (e.target) {
-      e.target.value = ''
+      e.target.value = "";
     }
-  }
+  };
 
   const triggerFileUpload = (layerId: string) => {
-    uploadingLayerId.current = layerId
-    fileInputRef.current?.click()
-  }
+    uploadingLayerId.current = layerId;
+    fileInputRef.current?.click();
+  };
 
   const renderLayer = (layer: LayerConfig) => {
-    if (!layer.visible) return null
+    if (!layer.visible) return null;
 
-    const isSelected = selectedLayerId === layer.id && slide.id === currentSlideId
-    
-    const selectionStyle: React.CSSProperties = isSelected ? {
-      outline: '2px solid #4ADE80',
-      outlineOffset: '2px',
-      borderRadius: '4px',
-    } : {}
+    const isSelected =
+      selectedLayerId === layer.id && slide.id === currentSlideId;
+
+    const selectionStyle: React.CSSProperties = isSelected
+      ? {
+          outline: "2px solid #4ADE80",
+          outlineOffset: "2px",
+          borderRadius: "4px",
+        }
+      : {};
 
     switch (layer.type) {
-      case 'text': {
-        const props = normalizeLayerProperties<TextProperties>(layer.properties)
-        const scaleFactor = getScaleFactor()
-        
+      case "text": {
+        const props = normalizeLayerProperties<TextProperties>(
+          layer.properties
+        );
+        const scaleFactor = getScaleFactor();
+
         const layoutConfig: LayoutConfig = {
-          position: props.position || 'center',
-          anchorX: props.anchorX || 'center',
-          anchorY: props.anchorY || 'top',
+          position: props.position || "center",
+          anchorX: props.anchorX || "center",
+          anchorY: props.anchorY || "top",
           offsetX: props.offsetX || 0,
           offsetY: props.offsetY !== undefined ? props.offsetY : 0,
-        }
-        
-        const baseStyle = calculateLayerStyle(layer, slide.canvas, layoutConfig)
-        
+        };
+
+        const baseStyle = calculateLayerStyle(
+          layer,
+          slide.canvas,
+          layoutConfig
+        );
+
         return (
           <div
             key={layer.id}
@@ -109,43 +135,53 @@ export default function TemplateSlide({ slide, isActive, onClick }: TemplateSlid
             style={{
               ...baseStyle,
               ...selectionStyle,
-              fontFamily: props.fontFamily || 'Inter',
+              fontFamily: props.fontFamily || "Inter",
               fontSize: `${(props.fontSize || 16) * scaleFactor}px`,
-              fontWeight: props.fontWeight || '400',
-              color: props.color || '#000000',
-              textAlign: (props.align || 'left') as 'left' | 'center' | 'right',
+              fontWeight: props.fontWeight || "400",
+              color: props.color || "#000000",
+              textAlign: (props.align || "left") as "left" | "center" | "right",
               lineHeight: props.lineHeight || 1.5,
-              whiteSpace: 'pre-wrap',
-              padding: '4px',
+              whiteSpace: "pre-wrap",
+              padding: "4px",
             }}
-            className={`transition-all duration-150 ${!layer.locked ? 'hover:outline hover:outline-2 hover:outline-emerald-400/50 hover:outline-offset-2' : ''}`}
+            className={`transition-all duration-150 ${
+              !layer.locked
+                ? "hover:outline hover:outline-2 hover:outline-emerald-400/50 hover:outline-offset-2"
+                : ""
+            }`}
           >
-            {props.content || ''}
+            {props.content || ""}
           </div>
-        )
+        );
       }
 
-      case 'image':
-      case 'screenshot': {
-        const props = normalizeLayerProperties<ImageProperties>(layer.properties)
-        const scaleFactor = getScaleFactor()
-        const isLoading = loadingLayers.has(layer.id)
-        
+      case "image":
+      case "screenshot": {
+        const props = normalizeLayerProperties<ImageProperties>(
+          layer.properties
+        );
+        const scaleFactor = getScaleFactor();
+        const isLoading = loadingLayers.has(layer.id);
+
         const layoutConfig: LayoutConfig = {
-          position: props.position || 'center',
-          anchorX: props.anchorX || 'center',
-          anchorY: props.anchorY || 'center',
+          position: props.position || "center",
+          anchorX: props.anchorX || "center",
+          anchorY: props.anchorY || "center",
           offsetX: props.offsetX || 0,
           offsetY: props.offsetY !== undefined ? props.offsetY : 0,
           scale: props.scale || 1,
-        }
-        
-        const baseStyle = calculateLayerStyle(layer, slide.canvas, layoutConfig)
-        const borderRadius = (props.borderRadius || 0) * scaleFactor
-        const shadowOffsetX = (props.shadowOffsetX || 0) * scaleFactor
-        const shadowOffsetY = (props.shadowOffsetY || 4) * scaleFactor
-        const shadowBlur = (props.shadowBlur || 20) * scaleFactor
-        
+        };
+
+        const baseStyle = calculateLayerStyle(
+          layer,
+          slide.canvas,
+          layoutConfig
+        );
+        const borderRadius = (props.borderRadius || 0) * scaleFactor;
+        const shadowOffsetX = (props.shadowOffsetX || 0) * scaleFactor;
+        const shadowOffsetY = (props.shadowOffsetY || 4) * scaleFactor;
+        const shadowBlur = (props.shadowBlur || 20) * scaleFactor;
+
         return (
           <div
             key={layer.id}
@@ -154,12 +190,18 @@ export default function TemplateSlide({ slide, isActive, onClick }: TemplateSlid
               ...baseStyle,
               ...selectionStyle,
               borderRadius: `${borderRadius}px`,
-              overflow: 'visible',
-              boxShadow: props.shadow 
-                ? `${shadowOffsetX}px ${shadowOffsetY}px ${shadowBlur}px ${props.shadowColor || 'rgba(0,0,0,0.25)'}`
-                : 'none',
+              overflow: "visible",
+              boxShadow: props.shadow
+                ? `${shadowOffsetX}px ${shadowOffsetY}px ${shadowBlur}px ${
+                    props.shadowColor || "rgba(0,0,0,0.25)"
+                  }`
+                : "none",
             }}
-            className={`transition-all duration-150 ${!layer.locked ? 'hover:outline hover:outline-2 hover:outline-emerald-400/50 hover:outline-offset-2' : ''}`}
+            className={`transition-all duration-150 ${
+              !layer.locked
+                ? "hover:outline hover:outline-2 hover:outline-emerald-400/50 hover:outline-offset-2"
+                : ""
+            }`}
           >
             {props.src ? (
               <div className="relative w-full h-full">
@@ -171,7 +213,7 @@ export default function TemplateSlide({ slide, isActive, onClick }: TemplateSlid
                   draggable={false}
                 />
                 {isLoading && (
-                  <div 
+                  <div
                     className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center animate-in fade-in duration-200"
                     style={{ borderRadius: `${borderRadius}px` }}
                   >
@@ -185,14 +227,14 @@ export default function TemplateSlide({ slide, isActive, onClick }: TemplateSlid
                 )}
               </div>
             ) : (
-              <div 
+              <div
                 className="w-full h-full bg-gradient-to-br from-secondary to-muted flex flex-col items-center justify-center gap-3 border-2 border-dashed border-border relative"
                 style={{ borderRadius: `${borderRadius}px` }}
                 onClick={(e) => {
-                  e.stopPropagation()
-                  handleLayerClick(e, layer.id)
+                  e.stopPropagation();
+                  handleLayerClick(e, layer.id);
                   if (!isLoading) {
-                    triggerFileUpload(layer.id)
+                    triggerFileUpload(layer.id);
                   }
                 }}
               >
@@ -211,39 +253,45 @@ export default function TemplateSlide({ slide, isActive, onClick }: TemplateSlid
                 ) : (
                   <>
                     <div className="p-4 bg-card/50 rounded-full">
-                      {layer.type === 'screenshot' ? (
+                      {layer.type === "screenshot" ? (
                         <Smartphone className="w-10 h-10 text-muted-foreground" />
                       ) : (
                         <ImagePlus className="w-10 h-10 text-muted-foreground" />
                       )}
                     </div>
                     <span className="text-sm text-muted-foreground font-medium">
-                      {props.placeholder || 'Click to add image'}
+                      {props.placeholder || "Click to add image"}
                     </span>
                   </>
                 )}
               </div>
             )}
           </div>
-        )
+        );
       }
 
-      case 'shape': {
-        const props = normalizeLayerProperties<ShapeProperties>(layer.properties)
-        const scaleFactor = getScaleFactor()
-        
+      case "shape": {
+        const props = normalizeLayerProperties<ShapeProperties>(
+          layer.properties
+        );
+        const scaleFactor = getScaleFactor();
+
         const layoutConfig: LayoutConfig = {
-          position: props.position || 'center',
-          anchorX: props.anchorX || 'center',
-          anchorY: props.anchorY || 'center',
+          position: props.position || "center",
+          anchorX: props.anchorX || "center",
+          anchorY: props.anchorY || "center",
           offsetX: props.offsetX || 0,
           offsetY: props.offsetY !== undefined ? props.offsetY : 0,
-        }
-        
-        const baseStyle = calculateLayerStyle(layer, slide.canvas, layoutConfig)
-        const cornerRadius = (props.cornerRadius || 0) * scaleFactor
-        const strokeWidth = (props.strokeWidth || 0) * scaleFactor
-        
+        };
+
+        const baseStyle = calculateLayerStyle(
+          layer,
+          slide.canvas,
+          layoutConfig
+        );
+        const cornerRadius = (props.cornerRadius || 0) * scaleFactor;
+        const strokeWidth = (props.strokeWidth || 0) * scaleFactor;
+
         return (
           <div
             key={layer.id}
@@ -251,22 +299,29 @@ export default function TemplateSlide({ slide, isActive, onClick }: TemplateSlid
             style={{
               ...baseStyle,
               ...selectionStyle,
-              backgroundColor: props.fill || 'transparent',
-              borderRadius: props.shapeType === 'circle' ? '50%' : `${cornerRadius}px`,
-              border: props.stroke ? `${strokeWidth}px solid ${props.stroke}` : 'none',
+              backgroundColor: props.fill || "transparent",
+              borderRadius:
+                props.shapeType === "circle" ? "50%" : `${cornerRadius}px`,
+              border: props.stroke
+                ? `${strokeWidth}px solid ${props.stroke}`
+                : "none",
             }}
-            className={`transition-all duration-150 ${!layer.locked ? 'hover:outline hover:outline-2 hover:outline-emerald-400/50 hover:outline-offset-2' : ''}`}
+            className={`transition-all duration-150 ${
+              !layer.locked
+                ? "hover:outline hover:outline-2 hover:outline-emerald-400/50 hover:outline-offset-2"
+                : ""
+            }`}
           />
-        )
+        );
       }
 
       default:
-        return null
+        return null;
     }
-  }
+  };
 
-  const sortedLayers = [...slide.layers].sort((a, b) => a.zIndex - b.zIndex)
-  const backgroundColor = slide.canvas.backgroundColor
+  const sortedLayers = [...slide.layers].sort((a, b) => a.zIndex - b.zIndex);
+  const backgroundColor = slide.canvas.backgroundColor;
 
   useEffect(() => {
     if (containerRef.current) {
@@ -275,20 +330,20 @@ export default function TemplateSlide({ slide, isActive, onClick }: TemplateSlid
   }, [containerRef.current]);
 
   return (
-    <div 
+    <div
       ref={containerRef}
-      className="relative h-full flex-shrink-0 group" 
+      className="relative h-full flex-shrink-0 group"
       style={{ aspectRatio: `${slide.canvas.width}/${slide.canvas.height}` }}
     >
-
       <div
         onClick={handleSlideClick}
         className={`
           relative w-full h-full rounded-2xl overflow-hidden cursor-pointer
           transition-all duration-200
-          ${isActive 
-            ? 'ring-2 ring-emerald-500 ring-offset-2 ring-offset-background shadow-xl shadow-emerald-500/20' 
-            : 'ring-1 ring-border hover:ring-2 hover:ring-emerald-400/50 hover:shadow-lg'
+          ${
+            isActive
+              ? "ring-2 ring-emerald-500 ring-offset-2 ring-offset-background shadow-xl shadow-emerald-500/20"
+              : "ring-1 ring-border hover:ring-2 hover:ring-emerald-400/50 hover:shadow-lg"
           }
         `}
         style={{ backgroundColor }}
@@ -304,5 +359,5 @@ export default function TemplateSlide({ slide, isActive, onClick }: TemplateSlid
         onChange={handleFileChange}
       />
     </div>
-  )
+  );
 }
