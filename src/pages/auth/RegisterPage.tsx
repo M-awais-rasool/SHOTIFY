@@ -57,7 +57,7 @@ export default function RegisterPage() {
     <div className="w-full max-w-6xl flex flex-col lg:flex-row gap-8 lg:gap-16 items-center animate-blur-in px-4">
       <div className="flex-1 max-w-lg lg:max-w-none">
         <div
-          className="flex items-center gap-3 mb-8 animate-slide-up opacity-0 stagger-1"
+          className="flex items-center gap-3 animate-slide-up opacity-0 stagger-1"
           style={{ animationFillMode: "forwards" }}
         >
           <img

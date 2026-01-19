@@ -55,14 +55,13 @@ export default function LoginPage() {
     "Unlimited screenshot editing",
     "Professional export options",
     "Cloud storage included",
-    "Team collaboration tools",
   ];
 
   return (
     <div className="w-full max-w-6xl flex flex-col lg:flex-row gap-8 lg:gap-16 items-center animate-blur-in px-4">
       <div className="flex-1 max-w-lg lg:max-w-none">
         <div
-          className="flex items-center gap-3 mb-8 animate-slide-up opacity-0 stagger-1"
+          className="flex items-center gap-3 animate-slide-up opacity-0 stagger-1"
           style={{ animationFillMode: "forwards" }}
         >
           <img
@@ -109,26 +108,6 @@ export default function LoginPage() {
               <span className="font-medium">{feature}</span>
             </div>
           ))}
-        </div>
-
-        <div
-          className="mt-10 flex items-center gap-4 animate-slide-up opacity-0 stagger-4"
-          style={{ animationFillMode: "forwards" }}
-        >
-          <div className="flex -space-x-3">
-            {[...Array(4)].map((_, i) => (
-              <div
-                key={i}
-                className="w-10 h-10 rounded-full bg-gradient-to-br from-secondary to-muted border-2 border-card flex items-center justify-center text-sm font-medium text-muted-foreground"
-              >
-                {String.fromCharCode(65 + i)}
-              </div>
-            ))}
-          </div>
-          <div className="text-sm">
-            <p className="font-semibold text-foreground">2,000+ creators</p>
-            <p className="text-muted-foreground">already using Shotify</p>
-          </div>
         </div>
       </div>
 
