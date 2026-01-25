@@ -15,22 +15,258 @@ import {
 } from "@/lib/layerUtils";
 import { ImagePlus, Smartphone, Loader2 } from "lucide-react";
 
+type ResizeHandle =
+  | "nw"
+  | "n"
+  | "ne"
+  | "e"
+  | "se"
+  | "s"
+  | "sw"
+  | "w";
+
+type AnchorX = "left" | "center" | "right";
+type Position = "center" | "top" | "bottom" | "top-overflow" | "bottom-overflow";
+
+interface InteractionState {
+  mode: "move" | "resize";
+  layerId: string;
+  handle?: ResizeHandle;
+  startPointerX: number;
+  startPointerY: number;
+  startCenterX: number;
+  startCenterY: number;
+  startWidth: number;
+  startHeight: number;
+  startLeft: number;
+  startTop: number;
+  anchorX: AnchorX;
+  position: Position;
+}
+
 export default function TemplateSlide({
   slide,
   isActive,
   onClick,
 }: TemplateSlideProps) {
-  const { selectedLayerId, setSelectedLayerId, currentSlideId, updateLayer } =
-    useEditorStore();
+  const {
+    selectedLayerId,
+    setSelectedLayerId,
+    currentSlideId,
+    updateLayer,
+    pushHistory,
+  } = useEditorStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const uploadingLayerId = useRef<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [loadingLayers, setLoadingLayers] = useState<Set<string>>(new Set());
+  const [interaction, setInteraction] = useState<InteractionState | null>(null);
 
   const getScaleFactor = () => {
     if (!containerRef.current) return 1;
     const renderedWidth = containerRef.current.offsetWidth;
     return renderedWidth / slide.canvas.width;
+  };
+
+  const getCanvasPoint = (clientX: number, clientY: number) => {
+    const rect = containerRef.current?.getBoundingClientRect();
+    const scale = getScaleFactor();
+
+    if (!rect) return { x: 0, y: 0 };
+
+    return {
+      x: (clientX - rect.left) / scale,
+      y: (clientY - rect.top) / scale,
+    };
+  };
+
+  const computeCenter = (
+    layer: LayerConfig,
+    anchorX: AnchorX,
+    position: Position,
+    offsetX = 0,
+    offsetY = 0,
+  ) => {
+    const { width, height } = layer;
+    let centerX: number;
+
+    switch (anchorX) {
+      case "left":
+        centerX = offsetX + width / 2;
+        break;
+      case "right":
+        centerX = slide.canvas.width - offsetX - width / 2;
+        break;
+      case "center":
+      default:
+        centerX = slide.canvas.width / 2 + offsetX;
+        break;
+    }
+
+    let centerY: number;
+    if (position === "bottom") {
+      centerY = slide.canvas.height - offsetY - height / 2;
+    } else {
+      centerY = offsetY;
+    }
+
+    return { centerX, centerY };
+  };
+
+  const centerToOffsets = (
+    centerX: number,
+    centerY: number,
+    width: number,
+    height: number,
+    anchorX: AnchorX,
+    position: Position,
+  ) => {
+    let offsetX: number;
+    switch (anchorX) {
+      case "left":
+        offsetX = centerX - width / 2;
+        break;
+      case "right":
+        offsetX = slide.canvas.width - centerX - width / 2;
+        break;
+      case "center":
+      default:
+        offsetX = centerX - slide.canvas.width / 2;
+        break;
+    }
+
+    const offsetY =
+      position === "bottom"
+        ? slide.canvas.height - centerY - height / 2
+        : centerY;
+
+    return { offsetX, offsetY };
+  };
+
+  const startMove = (
+    e: React.MouseEvent,
+    layer: LayerConfig,
+    props: Partial<TextProperties | ImageProperties | ShapeProperties>,
+  ) => {
+    if (!isActive || layer.locked || e.button !== 0) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    const anchorX: AnchorX = (props.anchorX as AnchorX) || "center";
+    const position: Position = (props.position as Position) || "center";
+    const offsetX = (props.offsetX as number) || 0;
+    const offsetY =
+      props.offsetY !== undefined ? (props.offsetY as number) : 0;
+
+    const { centerX, centerY } = computeCenter(
+      layer,
+      anchorX,
+      position,
+      offsetX,
+      offsetY,
+    );
+    const pointer = getCanvasPoint(e.clientX, e.clientY);
+
+    pushHistory();
+    setSelectedLayerId(layer.id);
+    setInteraction({
+      mode: "move",
+      layerId: layer.id,
+      startPointerX: pointer.x,
+      startPointerY: pointer.y,
+      startCenterX: centerX,
+      startCenterY: centerY,
+      startWidth: layer.width,
+      startHeight: layer.height,
+      startLeft: centerX - layer.width / 2,
+      startTop: centerY - layer.height / 2,
+      anchorX,
+      position,
+    });
+  };
+
+  const startResize = (
+    e: React.MouseEvent,
+    layer: LayerConfig,
+    props: Partial<TextProperties | ImageProperties | ShapeProperties>,
+    handle: ResizeHandle,
+  ) => {
+    if (!isActive || layer.locked || e.button !== 0) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    const anchorX: AnchorX = (props.anchorX as AnchorX) || "center";
+    const position: Position = (props.position as Position) || "center";
+    const offsetX = (props.offsetX as number) || 0;
+    const offsetY =
+      props.offsetY !== undefined ? (props.offsetY as number) : 0;
+
+    const { centerX, centerY } = computeCenter(
+      layer,
+      anchorX,
+      position,
+      offsetX,
+      offsetY,
+    );
+    const pointer = getCanvasPoint(e.clientX, e.clientY);
+
+    pushHistory();
+    setSelectedLayerId(layer.id);
+    setInteraction({
+      mode: "resize",
+      handle,
+      layerId: layer.id,
+      startPointerX: pointer.x,
+      startPointerY: pointer.y,
+      startCenterX: centerX,
+      startCenterY: centerY,
+      startWidth: layer.width,
+      startHeight: layer.height,
+      startLeft: centerX - layer.width / 2,
+      startTop: centerY - layer.height / 2,
+      anchorX,
+      position,
+    });
+  };
+
+  const renderResizeHandles = (
+    layer: LayerConfig,
+    props: Partial<TextProperties | ImageProperties | ShapeProperties>,
+  ) => {
+    const handles: Array<{ id: ResizeHandle; style: React.CSSProperties }> = [
+      { id: "nw", style: { top: "-6px", left: "-6px", cursor: "nwse-resize" } },
+      { id: "n", style: { top: "-6px", left: "50%", transform: "translateX(-50%)", cursor: "ns-resize" } },
+      { id: "ne", style: { top: "-6px", right: "-6px", cursor: "nesw-resize" } },
+      { id: "e", style: { top: "50%", right: "-6px", transform: "translateY(-50%)", cursor: "ew-resize" } },
+      { id: "se", style: { bottom: "-6px", right: "-6px", cursor: "nwse-resize" } },
+      { id: "s", style: { bottom: "-6px", left: "50%", transform: "translateX(-50%)", cursor: "ns-resize" } },
+      { id: "sw", style: { bottom: "-6px", left: "-6px", cursor: "nesw-resize" } },
+      { id: "w", style: { top: "50%", left: "-6px", transform: "translateY(-50%)", cursor: "ew-resize" } },
+    ];
+
+    return (
+      <div className="absolute inset-0 pointer-events-none">
+        {handles.map((handle) => (
+          <div
+            key={handle.id}
+            style={{
+              position: "absolute",
+              width: 12,
+              height: 12,
+              borderRadius: "9999px",
+              background: "white",
+              border: "2px solid #22c55e",
+              boxShadow: "0 2px 6px rgba(0,0,0,0.25)",
+              ...handle.style,
+            }}
+            className="pointer-events-auto"
+            onMouseDown={(e) => startResize(e, layer, props, handle.id)}
+          />
+        ))}
+      </div>
+    );
   };
 
   const handleLayerClick = (e: React.MouseEvent, layerId: string) => {
@@ -132,6 +368,7 @@ export default function TemplateSlide({
           <div
             key={layer.id}
             onClick={(e) => handleLayerClick(e, layer.id)}
+            onMouseDown={(e) => startMove(e, layer, props)}
             style={{
               ...baseStyle,
               ...selectionStyle,
@@ -143,6 +380,7 @@ export default function TemplateSlide({
               lineHeight: props.lineHeight || 1.5,
               whiteSpace: "pre-wrap",
               padding: "4px",
+              cursor: layer.locked || !isActive ? "default" : "move",
             }}
             className={`transition-all duration-150 ${
               !layer.locked
@@ -151,6 +389,7 @@ export default function TemplateSlide({
             }`}
           >
             {props.content || ""}
+            {isSelected && isActive && renderResizeHandles(layer, props)}
           </div>
         );
       }
@@ -186,6 +425,7 @@ export default function TemplateSlide({
           <div
             key={layer.id}
             onClick={(e) => handleLayerClick(e, layer.id)}
+            onMouseDown={(e) => startMove(e, layer, props)}
             style={{
               ...baseStyle,
               ...selectionStyle,
@@ -196,6 +436,7 @@ export default function TemplateSlide({
                     props.shadowColor || "rgba(0,0,0,0.25)"
                   }`
                 : "none",
+              cursor: layer.locked || !isActive ? "default" : "move",
             }}
             className={`transition-all duration-150 ${
               !layer.locked
@@ -212,6 +453,7 @@ export default function TemplateSlide({
                   style={{ borderRadius: `${borderRadius}px` }}
                   draggable={false}
                 />
+                {isSelected && isActive && renderResizeHandles(layer, props)}
                 {isLoading && (
                   <div
                     className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center animate-in fade-in duration-200"
@@ -262,6 +504,7 @@ export default function TemplateSlide({
                     <span className="text-sm text-muted-foreground font-medium">
                       {props.placeholder || "Click to add image"}
                     </span>
+                    {isSelected && isActive && renderResizeHandles(layer, props)}
                   </>
                 )}
               </div>
@@ -296,6 +539,7 @@ export default function TemplateSlide({
           <div
             key={layer.id}
             onClick={(e) => handleLayerClick(e, layer.id)}
+            onMouseDown={(e) => startMove(e, layer, props)}
             style={{
               ...baseStyle,
               ...selectionStyle,
@@ -305,13 +549,16 @@ export default function TemplateSlide({
               border: props.stroke
                 ? `${strokeWidth}px solid ${props.stroke}`
                 : "none",
+              cursor: layer.locked || !isActive ? "default" : "move",
             }}
             className={`transition-all duration-150 ${
               !layer.locked
                 ? "hover:outline hover:outline-2 hover:outline-emerald-400/50 hover:outline-offset-2"
                 : ""
             }`}
-          />
+          >
+            {isSelected && isActive && renderResizeHandles(layer, props)}
+          </div>
         );
       }
 
@@ -322,6 +569,114 @@ export default function TemplateSlide({
 
   const sortedLayers = [...slide.layers].sort((a, b) => a.zIndex - b.zIndex);
   const backgroundColor = slide.canvas.backgroundColor;
+
+  useEffect(() => {
+    if (!interaction) return;
+
+    const handlePointerMove = (event: MouseEvent) => {
+      const state = useEditorStore.getState();
+      const liveSlide = state.slides.find((s) => s.id === slide.id);
+      const layer = liveSlide?.layers.find((l) => l.id === interaction.layerId);
+
+      if (!liveSlide || !layer || liveSlide.id !== currentSlideId) return;
+
+      const props = normalizeLayerProperties(layer.properties);
+      const pointer = getCanvasPoint(event.clientX, event.clientY);
+      const dx = pointer.x - interaction.startPointerX;
+      const dy = pointer.y - interaction.startPointerY;
+
+      if (interaction.mode === "move") {
+        const newCenterX = interaction.startCenterX + dx;
+        const newCenterY = interaction.startCenterY + dy;
+        const { offsetX, offsetY } = centerToOffsets(
+          newCenterX,
+          newCenterY,
+          layer.width,
+          layer.height,
+          interaction.anchorX,
+          interaction.position,
+        );
+
+        updateLayer(
+          slide.id,
+          interaction.layerId,
+          {
+            properties: {
+              ...props,
+              offsetX,
+              offsetY,
+            },
+          },
+          { pushToHistory: false },
+        );
+        return;
+      }
+
+      if (interaction.mode === "resize" && interaction.handle) {
+        const minSize = 20;
+
+        let newLeft = interaction.startLeft;
+        let newTop = interaction.startTop;
+        let newWidth = interaction.startWidth;
+        let newHeight = interaction.startHeight;
+
+        if (interaction.handle.includes("e")) {
+          newWidth = Math.max(minSize, interaction.startWidth + dx);
+        }
+
+        if (interaction.handle.includes("w")) {
+          newWidth = Math.max(minSize, interaction.startWidth - dx);
+          newLeft = interaction.startLeft + dx;
+        }
+
+        if (interaction.handle.includes("s")) {
+          newHeight = Math.max(minSize, interaction.startHeight + dy);
+        }
+
+        if (interaction.handle.includes("n")) {
+          newHeight = Math.max(minSize, interaction.startHeight - dy);
+          newTop = interaction.startTop + dy;
+        }
+
+        const newCenterX = newLeft + newWidth / 2;
+        const newCenterY = newTop + newHeight / 2;
+
+        const { offsetX, offsetY } = centerToOffsets(
+          newCenterX,
+          newCenterY,
+          newWidth,
+          newHeight,
+          interaction.anchorX,
+          interaction.position,
+        );
+
+        updateLayer(
+          slide.id,
+          interaction.layerId,
+          {
+            width: newWidth,
+            height: newHeight,
+            properties: {
+              ...props,
+              offsetX,
+              offsetY,
+            },
+          },
+          { pushToHistory: false },
+        );
+      }
+    };
+
+    const handlePointerUp = () => setInteraction(null);
+
+    window.addEventListener("mousemove", handlePointerMove);
+    window.addEventListener("mouseup", handlePointerUp);
+
+    return () => {
+      window.removeEventListener("mousemove", handlePointerMove);
+      window.removeEventListener("mouseup", handlePointerUp);
+    };
+  }, [interaction, currentSlideId, updateLayer]);
 
   useEffect(() => {
     if (containerRef.current) {
