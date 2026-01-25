@@ -137,18 +137,21 @@ export function calculateLayerStyle(
   let left: string;
   let translateX: string;
 
+  const offsetXPercent = (offsetX / canvas.width) * 100;
+
   switch (anchorX) {
     case "left":
-      left = `${(offsetX / canvas.width) * 100}%`;
+      left = `${offsetXPercent}%`;
       translateX = "0";
       break;
     case "right":
-      left = `${100 - (offsetX / canvas.width) * 100}%`;
+      left = `${100 - offsetXPercent}%`;
       translateX = "-100%";
       break;
     case "center":
     default:
-      left = "50%";
+      // Center at 50% and shift by offsetX so drag updates reflect on canvas
+      left = `${50 + offsetXPercent}%`;
       translateX = "-50%";
       break;
   }
