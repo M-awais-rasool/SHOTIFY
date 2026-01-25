@@ -177,7 +177,7 @@ export default function ExportPage() {
         break;
       case "center":
       default:
-        x = (exportSize.width - width) / 2;
+        x = (exportSize.width - width) / 2 + offsetX * scaleX;
         break;
     }
 
