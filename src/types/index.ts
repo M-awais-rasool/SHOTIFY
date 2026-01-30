@@ -128,6 +128,7 @@ export interface ProjectConfig {
   images: ImageAsset[];
   slides?: SlideData[];
   exports?: ExportSize[];
+  deviceConfigs?: DeviceConfigMap;
 }
 
 export interface SlideData {
@@ -135,6 +136,20 @@ export interface SlideData {
   canvas: CanvasConfig;
   layers: LayerConfig[];
 }
+
+export interface DeviceSlideData {
+  id: string;
+  canvas: CanvasConfig;
+  layers: LayerConfig[];
+}
+
+export interface DeviceConfig {
+  exportSize: ExportSize;
+  slides: DeviceSlideData[];
+  isModified: boolean;
+}
+
+export type DeviceConfigMap = Record<string, DeviceConfig>;
 
 export interface ImageAsset {
   id: string;
