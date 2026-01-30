@@ -1,16 +1,18 @@
-
 const Footer = () => {
   return (
     <footer className="py-16 px-4 border-t border-border/50">
       <div className="container max-w-4xl mx-auto text-center">
         <div className="mb-8">
           <div className="flex items-center justify-center gap-2 mb-4">
-           <img
+            <img
               src="/logo.png"
               alt="Logo"
               className="w-10 h-10 hidden sm:block"
             />
-            <span className="font-display font-bold text-2xl text-foreground" style={{marginLeft: -6}}>
+            <span
+              className="font-display font-bold text-2xl text-foreground"
+              style={{ marginLeft: -6 }}
+            >
               Shotify
             </span>
           </div>
