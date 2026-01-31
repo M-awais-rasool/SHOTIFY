@@ -226,7 +226,7 @@ export default function TemplatesPage() {
                         {template.thumbnails.map((thumb, idx) => (
                           <div
                             key={idx}
-                            className="relative flex-shrink-0 w-72 aspect-[9/16] rounded-xl overflow-hidden bg-gradient-to-br from-secondary to-muted border border-border shadow-lg hover:shadow-xl transition-shadow"
+                            className="relative flex-shrink-0 w-72 aspect-[9/20] rounded-xl overflow-hidden bg-gradient-to-br from-secondary to-muted border border-border shadow-lg hover:shadow-xl transition-shadow"
                           >
                             <img
                               src={thumb}
