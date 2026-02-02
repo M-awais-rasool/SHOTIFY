@@ -32,7 +32,7 @@ export interface TemplateConfig {
   canvas: CanvasConfig;
   layers: LayerConfig[];
   exports: ExportSize[];
-  slides: SlideData[];
+  deviceConfigs?: DeviceConfigMap;
 }
 
 export interface CanvasConfig {
@@ -126,7 +126,6 @@ export interface ProjectConfig {
   canvas: CanvasConfig;
   layers: LayerConfig[];
   images: ImageAsset[];
-  slides?: SlideData[];
   exports?: ExportSize[];
   deviceConfigs?: DeviceConfigMap;
 }
@@ -137,15 +136,9 @@ export interface SlideData {
   layers: LayerConfig[];
 }
 
-export interface DeviceSlideData {
-  id: string;
-  canvas: CanvasConfig;
-  layers: LayerConfig[];
-}
-
 export interface DeviceConfig {
   exportSize: ExportSize;
-  slides: DeviceSlideData[];
+  slides: SlideData[];
   isModified: boolean;
 }
 
