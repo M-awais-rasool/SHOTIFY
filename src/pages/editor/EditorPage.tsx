@@ -335,13 +335,27 @@ export function EditorPage() {
             </button>
 
             {isDeviceDropdownOpen && (
-              <div className="absolute top-full right-0 mt-2 w-64 bg-slate-800 border border-slate-600 rounded-xl shadow-2xl z-50 overflow-hidden">
-                <div className="p-2 border-b border-slate-600">
-                  <p className="text-xs font-medium text-slate-400 px-2 py-1">
-                    Edit Device
+              <div className="absolute top-full right-0 mt-2 w-72 bg-gradient-to-b from-slate-800 to-slate-800/95 border border-slate-700/40 rounded-xl shadow-2xl shadow-black/40 z-50 overflow-hidden backdrop-blur-xl">
+                {/* Compact Header */}
+                <div className="relative px-4 py-2.5 border-b border-slate-700/30 bg-gradient-to-r from-slate-800/50 to-slate-700/20">
+                  <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent opacity-50" />
+                  <p className="relative text-xs font-bold text-slate-200 tracking-wide uppercase">
+                    Select Device
                   </p>
                 </div>
-                <div className="max-h-[300px] overflow-y-auto p-2">
+
+                {/* Compact Scrollable List - Hidden Scrollbar */}
+                <div className="max-h-[280px] overflow-y-auto p-2.5 space-y-1.5 scrollbar-hide">
+                  <style>{`
+      .scrollbar-hide::-webkit-scrollbar {
+        display: none;
+      }
+      .scrollbar-hide {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+    `}</style>
+
                   {exportSizes.map((size) => {
                     const key = getDeviceKey(size);
                     const isSelected = selectedDeviceKey === key;
@@ -352,42 +366,115 @@ export function EditorPage() {
                       <button
                         key={key}
                         onClick={() => handleDeviceSelect(key)}
-                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-colors ${
-                          isSelected
-                            ? "bg-emerald-500/20 text-emerald-400"
-                            : "hover:bg-slate-700 text-white"
-                        }`}
+                        className={`
+            group w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left 
+            transition-all duration-300 ease-out relative overflow-hidden
+            transform hover:scale-[1.02] active:scale-[0.98]
+            ${
+              isSelected
+                ? "bg-gradient-to-r from-emerald-500/20 via-emerald-500/10 to-transparent text-emerald-400 shadow-lg shadow-emerald-500/20 border border-emerald-500/30"
+                : "hover:bg-gradient-to-r hover:from-slate-700/70 hover:via-slate-700/40 hover:to-transparent text-slate-200 border border-transparent hover:border-slate-600/30"
+            }
+          `}
                       >
+                        {/* Animated Background Glow */}
                         <div
-                          className={`p-1.5 rounded-lg ${
-                            isSelected ? "bg-emerald-500/20" : "bg-slate-700"
-                          }`}
+                          className={`
+            absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500
+            ${
+              isSelected
+                ? "bg-[radial-gradient(circle_at_50%_0%,_rgba(16,185,129,0.1),transparent_70%)]"
+                : "bg-[radial-gradient(circle_at_0%_50%,_rgba(148,163,184,0.08),transparent_50%)]"
+            }
+          `}
+                        />
+
+                        {/* Shine Effect */}
+                        <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out bg-gradient-to-r from-transparent via-white/5 to-transparent" />
+
+                        {/* Compact Icon Container */}
+                        <div
+                          className={`
+              relative p-2 rounded-lg transition-all duration-300 flex-shrink-0
+              ${
+                isSelected
+                  ? "bg-emerald-500/25 shadow-md shadow-emerald-500/30 ring-1 ring-emerald-500/20"
+                  : "bg-slate-700/90 group-hover:bg-slate-600/90"
+              }
+            `}
                         >
-                          <DeviceIcon size={size} className="w-4 h-4" />
+                          <DeviceIcon
+                            size={size}
+                            className={`w-4 h-4 transition-all duration-300 ${
+                              isSelected
+                                ? "scale-110 drop-shadow-[0_0_6px_rgba(16,185,129,0.5)]"
+                                : "group-hover:scale-110 group-hover:rotate-3"
+                            }`}
+                          />
                         </div>
-                        <div className="flex-1 min-w-0">
+
+                        {/* Compact Content */}
+                        <div className="flex-1 min-w-0 relative z-10">
                           <div className="flex items-center gap-2">
-                            <span className="text-sm font-medium truncate">
+                            <span
+                              className={`
+                text-sm font-bold truncate transition-all duration-300
+                ${
+                  isSelected
+                    ? "text-emerald-400 drop-shadow-[0_0_8px_rgba(16,185,129,0.3)]"
+                    : "text-white group-hover:text-slate-50"
+                }
+              `}
+                            >
                               {size.name}
                             </span>
                             {isModified && (
-                              <span
-                                className="w-1.5 h-1.5 bg-amber-500 rounded-full flex-shrink-0"
-                                title="Modified"
-                              />
+                              <span className="relative flex h-1.5 w-1.5 flex-shrink-0">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-amber-500 shadow-sm shadow-amber-500/50"></span>
+                              </span>
                             )}
                           </div>
-                          <span className="text-xs text-slate-400">
+                          <span
+                            className={`
+              text-[11px] font-semibold transition-all duration-300
+              ${
+                isSelected
+                  ? "text-emerald-400/70"
+                  : "text-slate-400 group-hover:text-slate-300"
+              }
+            `}
+                          >
                             {size.width} × {size.height}
                           </span>
                         </div>
+
+                        {/* Compact Check Icon */}
                         {isSelected && (
-                          <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                          <div className="relative z-10 flex-shrink-0">
+                            <div className="p-1 rounded-full bg-gradient-to-br from-emerald-500/30 to-emerald-600/20 shadow-md shadow-emerald-500/30 ring-1 ring-emerald-500/30">
+                              <Check
+                                className="w-3.5 h-3.5 text-emerald-400 drop-shadow-[0_0_4px_rgba(16,185,129,0.6)]"
+                                strokeWidth={3}
+                              />
+                            </div>
+                          </div>
                         )}
+
+                        {/* Hover Indicator */}
+                        <div
+                          className={`
+            absolute left-0 top-1/2 -translate-y-1/2 w-1 h-0 group-hover:h-2/3 rounded-r-full transition-all duration-300
+            ${isSelected ? "bg-emerald-500" : "bg-slate-500"}
+          `}
+                        />
                       </button>
                     );
                   })}
                 </div>
+
+                {/* Subtle Bottom Fade */}
+                <div className="absolute bottom-0 left-0 right-0 h-6 bg-gradient-to-t from-slate-800 to-transparent pointer-events-none" />
               </div>
             )}
           </div>
