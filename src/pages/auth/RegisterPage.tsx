@@ -63,10 +63,9 @@ export default function RegisterPage() {
           <img
             src="/logo.png"
             alt="Logo"
-            className="w-20 h-20 hidden sm:block"
-            style={{ marginLeft: -20, marginRight: -14 }}
+            className="w-30 h-20 hidden sm:block"
+            style={{ marginTop: -30, marginLeft: 30 }}
           />
-          <span className="text-3xl font-bold text-foreground">Shotify</span>
         </div>
 
         <div
@@ -131,7 +130,7 @@ export default function RegisterPage() {
               Create your account
             </h2>
             <p className="text-muted-foreground">
-              Get started with Shotify for free
+              Get started with AppLens for free
             </p>
           </div>
 
