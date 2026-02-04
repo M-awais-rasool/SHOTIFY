@@ -65,7 +65,6 @@ export interface TextProperties {
   color: string;
   align: "left" | "center" | "right";
   lineHeight: number;
-  // Layout configuration
   position?: "top" | "center" | "bottom";
   anchorX?: "left" | "center" | "right";
   anchorY?: "top" | "center" | "bottom";
