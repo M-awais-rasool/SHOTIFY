@@ -38,7 +38,9 @@ export default function ExportPage() {
   const [isExporting, setIsExporting] = useState(false);
   const [exportProgress, setExportProgress] = useState(0);
   const [selectedSizes, setSelectedSizes] = useState<Set<string>>(new Set());
-  const [loadedImages, setLoadedImages] = useState<Map<string, HTMLImageElement>>(new Map());
+  const [loadedImages, setLoadedImages] = useState<
+    Map<string, HTMLImageElement>
+  >(new Map());
   const [exportComplete, setExportComplete] = useState(false);
   const [deviceConfigs, setDeviceConfigs] = useState<DeviceConfigMap>({});
 
@@ -53,7 +55,7 @@ export default function ExportPage() {
 
         const sizes = data.template?.jsonConfig.exports || [];
         setSelectedSizes(
-          new Set(sizes.map((s) => `${s.name}-${s.width}x${s.height}`))
+          new Set(sizes.map((s) => `${s.name}-${s.width}x${s.height}`)),
         );
 
         const sourceDeviceConfigs =
@@ -72,7 +74,9 @@ export default function ExportPage() {
                 slide.layers
                   .filter((l) => l.type === "image" || l.type === "screenshot")
                   .forEach((l) => {
-                    const props = normalizeLayerProperties<ImageProperties>(l.properties);
+                    const props = normalizeLayerProperties<ImageProperties>(
+                      l.properties,
+                    );
                     if (props.src) {
                       imageUrls.push(props.src);
                     }
@@ -81,9 +85,14 @@ export default function ExportPage() {
             } else {
               const layers = (config as any).layers || [];
               layers
-                .filter((l: LayerConfig) => l.type === "image" || l.type === "screenshot")
+                .filter(
+                  (l: LayerConfig) =>
+                    l.type === "image" || l.type === "screenshot",
+                )
                 .forEach((l: LayerConfig) => {
-                  const props = normalizeLayerProperties<ImageProperties>(l.properties);
+                  const props = normalizeLayerProperties<ImageProperties>(
+                    l.properties,
+                  );
                   if (props.src) {
                     imageUrls.push(props.src);
                   }
@@ -145,7 +154,7 @@ export default function ExportPage() {
     layer: LayerConfig,
     canvas: CanvasConfig,
     exportSize: ExportSize,
-    props: any
+    props: any,
   ) => {
     const scaleX = exportSize.width / canvas.width;
     const scaleY = exportSize.height / canvas.height;
@@ -216,13 +225,10 @@ export default function ExportPage() {
   };
 
   const renderSlide = useCallback(
-    async (
-      slide: SlideData,
-      exportSize: ExportSize
-    ): Promise<Blob | null> => {
+    async (slide: SlideData, exportSize: ExportSize): Promise<Blob | null> => {
       const canvas = slide.canvas;
       const layers = normalizeLayers(slide.layers);
-      
+
       const scaleX = exportSize.width / canvas.width;
       const scaleY = exportSize.height / canvas.height;
       const scale = Math.min(scaleX, scaleY);
@@ -248,7 +254,7 @@ export default function ExportPage() {
           width: exportSize.width,
           height: exportSize.height,
           fill: canvas.backgroundColor,
-        })
+        }),
       );
 
       const sortedLayers = [...layers].sort((a, b) => a.zIndex - b.zIndex);
@@ -257,9 +263,16 @@ export default function ExportPage() {
         if (!layerConfig.visible) continue;
 
         if (layerConfig.type === "shape") {
-          const props = normalizeLayerProperties<ShapeProperties>(layerConfig.properties);
-          const pos = calculateExportPosition(layerConfig, canvas, exportSize, props);
-          
+          const props = normalizeLayerProperties<ShapeProperties>(
+            layerConfig.properties,
+          );
+          const pos = calculateExportPosition(
+            layerConfig,
+            canvas,
+            exportSize,
+            props,
+          );
+
           if (props.shapeType === "circle") {
             layer.add(
               new Konva.Circle({
@@ -268,10 +281,12 @@ export default function ExportPage() {
                 radius: Math.max(pos.width, pos.height) / 2,
                 fill: props.fill || "transparent",
                 stroke: props.stroke || undefined,
-                strokeWidth: props.stroke ? (props.strokeWidth || 0) * scale : 0,
+                strokeWidth: props.stroke
+                  ? (props.strokeWidth || 0) * scale
+                  : 0,
                 opacity: layerConfig.opacity,
                 rotation: layerConfig.rotation,
-              })
+              }),
             );
           } else {
             layer.add(
@@ -282,20 +297,29 @@ export default function ExportPage() {
                 height: pos.height,
                 fill: props.fill || "transparent",
                 stroke: props.stroke || undefined,
-                strokeWidth: props.stroke ? (props.strokeWidth || 0) * scale : 0,
+                strokeWidth: props.stroke
+                  ? (props.strokeWidth || 0) * scale
+                  : 0,
                 cornerRadius: (props.cornerRadius || 0) * scale,
                 opacity: layerConfig.opacity,
                 rotation: layerConfig.rotation,
                 offsetX: pos.width / 2,
                 offsetY: pos.height / 2,
-              })
+              }),
             );
           }
         }
 
         if (layerConfig.type === "text") {
-          const props = normalizeLayerProperties<TextProperties>(layerConfig.properties);
-          const pos = calculateExportPosition(layerConfig, canvas, exportSize, props);
+          const props = normalizeLayerProperties<TextProperties>(
+            layerConfig.properties,
+          );
+          const pos = calculateExportPosition(
+            layerConfig,
+            canvas,
+            exportSize,
+            props,
+          );
 
           layer.add(
             new Konva.Text({
@@ -317,13 +341,20 @@ export default function ExportPage() {
               opacity: layerConfig.opacity,
               rotation: layerConfig.rotation,
               offsetX: pos.width / 2,
-            })
+            }),
           );
         }
 
         if (layerConfig.type === "image" || layerConfig.type === "screenshot") {
-          const props = normalizeLayerProperties<ImageProperties>(layerConfig.properties);
-          const pos = calculateExportPosition(layerConfig, canvas, exportSize, props);
+          const props = normalizeLayerProperties<ImageProperties>(
+            layerConfig.properties,
+          );
+          const pos = calculateExportPosition(
+            layerConfig,
+            canvas,
+            exportSize,
+            props,
+          );
 
           const img = loadedImages.get(props.src);
           const hasValidImage = img && img.complete && img.naturalWidth > 0;
@@ -343,7 +374,9 @@ export default function ExportPage() {
 
             let shadowOpacity = 0.25;
             if (props.shadowColor) {
-              const rgbaMatch = props.shadowColor.match(/rgba?\([^)]+,\s*([\d.]+)\s*\)/);
+              const rgbaMatch = props.shadowColor.match(
+                /rgba?\([^)]+,\s*([\d.]+)\s*\)/,
+              );
               if (rgbaMatch) {
                 shadowOpacity = parseFloat(rgbaMatch[1]);
               }
@@ -385,9 +418,21 @@ export default function ExportPage() {
                 ctx.lineTo(pos.width - borderRadius, 0);
                 ctx.arcTo(pos.width, 0, pos.width, borderRadius, borderRadius);
                 ctx.lineTo(pos.width, pos.height - borderRadius);
-                ctx.arcTo(pos.width, pos.height, pos.width - borderRadius, pos.height, borderRadius);
+                ctx.arcTo(
+                  pos.width,
+                  pos.height,
+                  pos.width - borderRadius,
+                  pos.height,
+                  borderRadius,
+                );
                 ctx.lineTo(borderRadius, pos.height);
-                ctx.arcTo(0, pos.height, 0, pos.height - borderRadius, borderRadius);
+                ctx.arcTo(
+                  0,
+                  pos.height,
+                  0,
+                  pos.height - borderRadius,
+                  borderRadius,
+                );
                 ctx.lineTo(0, borderRadius);
                 ctx.arcTo(0, 0, borderRadius, 0, borderRadius);
               } else {
@@ -400,15 +445,15 @@ export default function ExportPage() {
             const imgNaturalHeight = img.naturalHeight;
             const containerWidth = pos.width;
             const containerHeight = pos.height;
-            
+
             const imgAspect = imgNaturalWidth / imgNaturalHeight;
             const containerAspect = containerWidth / containerHeight;
-            
+
             let drawWidth: number;
             let drawHeight: number;
             let drawX: number;
             let drawY: number;
-            
+
             if (imgAspect > containerAspect) {
               drawHeight = containerHeight;
               drawWidth = containerHeight * imgAspect;
@@ -428,7 +473,7 @@ export default function ExportPage() {
                 width: drawWidth,
                 height: drawHeight,
                 image: img,
-              })
+              }),
             );
             outerGroup.add(imageGroup);
           } else {
@@ -440,7 +485,7 @@ export default function ExportPage() {
                 height: pos.height,
                 fill: "#e2e8f0",
                 cornerRadius: borderRadius,
-              })
+              }),
             );
           }
 
@@ -469,20 +514,24 @@ export default function ExportPage() {
         }
       });
     },
-    [loadedImages]
+    [loadedImages],
   );
 
   const buildExportPath = (exportSize: ExportSize, slideIndex: number) => {
     const platform = exportSize.platform?.toLowerCase();
     const nameLower = (exportSize.name || "").toLowerCase();
     const minDimension = Math.min(exportSize.width, exportSize.height);
-    const aspectRatio = Math.max(exportSize.width, exportSize.height) / Math.max(minDimension, 1);
+    const aspectRatio =
+      Math.max(exportSize.width, exportSize.height) / Math.max(minDimension, 1);
 
     const isIos = platform === "ios";
     const isAndroid = platform === "android";
 
     const isIpadLike = nameLower.includes("ipad") || nameLower.includes("pad");
-    const isTabletLike = nameLower.includes("tablet") || nameLower.includes("tab") || nameLower.includes("pad");
+    const isTabletLike =
+      nameLower.includes("tablet") ||
+      nameLower.includes("tab") ||
+      nameLower.includes("pad");
     const ipadBySize = minDimension >= 1500 && aspectRatio <= 1.7;
     const tabletBySize = minDimension >= 1200 && aspectRatio <= 1.9;
 
@@ -502,30 +551,34 @@ export default function ExportPage() {
     return `${rootFolder}/${deviceFolder}/${filename}`;
   };
 
-  const getDeviceConfigForExport = (exportSize: ExportSize): DeviceConfig | null => {
+  const getDeviceConfigForExport = (
+    exportSize: ExportSize,
+  ): DeviceConfig | null => {
     const deviceKey = `${exportSize.name}-${exportSize.width}x${exportSize.height}`;
 
     if (deviceConfigs[deviceKey]) {
       const config = deviceConfigs[deviceKey];
-      
+
       if (config.slides && config.slides.length > 0) {
         return config;
       }
-      
+
       const oldCanvas = (config as any).canvas || {
         width: exportSize.width,
         height: exportSize.height,
         backgroundColor: "#FFFFFF",
       };
       const oldLayers = (config as any).layers || [];
-      
+
       return {
         exportSize: config.exportSize,
-        slides: [{
-          id: `slide-${deviceKey.replace(/[^a-z0-9]/gi, "-")}-0`,
-          canvas: oldCanvas,
-          layers: oldLayers,
-        }],
+        slides: [
+          {
+            id: `slide-${deviceKey.replace(/[^a-z0-9]/gi, "-")}-0`,
+            canvas: oldCanvas,
+            layers: oldLayers,
+          },
+        ],
         isModified: config.isModified,
       };
     }
@@ -550,28 +603,45 @@ export default function ExportPage() {
         height: Math.round(layer.height * scaleY),
         properties: {
           ...props,
-          fontSize: props.fontSize ? Math.round(props.fontSize * Math.min(scaleX, scaleY)) : props.fontSize,
-          offsetX: props.offsetX ? Math.round(props.offsetX * scaleX) : props.offsetX,
-          offsetY: props.offsetY !== undefined ? Math.round(props.offsetY * scaleY) : props.offsetY,
-          borderRadius: props.borderRadius ? Math.round(props.borderRadius * Math.min(scaleX, scaleY)) : props.borderRadius,
-          shadowBlur: props.shadowBlur ? Math.round(props.shadowBlur * Math.min(scaleX, scaleY)) : props.shadowBlur,
-          shadowOffsetX: props.shadowOffsetX ? Math.round(props.shadowOffsetX * scaleX) : props.shadowOffsetX,
-          shadowOffsetY: props.shadowOffsetY ? Math.round(props.shadowOffsetY * scaleY) : props.shadowOffsetY,
+          fontSize: props.fontSize
+            ? Math.round(props.fontSize * Math.min(scaleX, scaleY))
+            : props.fontSize,
+          offsetX: props.offsetX
+            ? Math.round(props.offsetX * scaleX)
+            : props.offsetX,
+          offsetY:
+            props.offsetY !== undefined
+              ? Math.round(props.offsetY * scaleY)
+              : props.offsetY,
+          borderRadius: props.borderRadius
+            ? Math.round(props.borderRadius * Math.min(scaleX, scaleY))
+            : props.borderRadius,
+          shadowBlur: props.shadowBlur
+            ? Math.round(props.shadowBlur * Math.min(scaleX, scaleY))
+            : props.shadowBlur,
+          shadowOffsetX: props.shadowOffsetX
+            ? Math.round(props.shadowOffsetX * scaleX)
+            : props.shadowOffsetX,
+          shadowOffsetY: props.shadowOffsetY
+            ? Math.round(props.shadowOffsetY * scaleY)
+            : props.shadowOffsetY,
         },
       };
     });
 
     return {
       exportSize,
-      slides: [{
-        id: `slide-fallback-0`,
-        canvas: {
-          width: exportSize.width,
-          height: exportSize.height,
-          backgroundColor: baseCanvas.backgroundColor,
+      slides: [
+        {
+          id: `slide-fallback-0`,
+          canvas: {
+            width: exportSize.width,
+            height: exportSize.height,
+            backgroundColor: baseCanvas.backgroundColor,
+          },
+          layers: scaledLayers,
         },
-        layers: scaledLayers,
-      }],
+      ],
       isModified: false,
     };
   };
@@ -598,7 +668,7 @@ export default function ExportPage() {
     const zip = new JSZip();
     const sizes = project.template?.jsonConfig.exports || [];
     const selectedExports = sizes.filter((s) =>
-      selectedSizes.has(`${s.name}-${s.width}x${s.height}`)
+      selectedSizes.has(`${s.name}-${s.width}x${s.height}`),
     );
 
     // Count total slides to export
@@ -614,7 +684,11 @@ export default function ExportPage() {
       const config = getDeviceConfigForExport(exportSize);
 
       if (config && config.slides) {
-        for (let slideIndex = 0; slideIndex < config.slides.length; slideIndex++) {
+        for (
+          let slideIndex = 0;
+          slideIndex < config.slides.length;
+          slideIndex++
+        ) {
           const slide = config.slides[slideIndex];
           const blob = await renderSlide(slide, exportSize);
           if (blob) {
@@ -628,7 +702,10 @@ export default function ExportPage() {
     }
 
     const zipBlob = await zip.generateAsync({ type: "blob" });
-    saveAs(zipBlob, `${project.name.replace(/[^a-z0-9]/gi, "_")}_screenshots.zip`);
+    saveAs(
+      zipBlob,
+      `${project.name.replace(/[^a-z0-9]/gi, "_")}_screenshots.zip`,
+    );
 
     setIsExporting(false);
     setExportComplete(true);
@@ -641,7 +718,8 @@ export default function ExportPage() {
         <div
           className="fixed inset-0 pointer-events-none"
           style={{
-            background: "radial-gradient(ellipse 80% 50% at 50% -20%, hsl(160 84% 39% / 0.15), transparent)",
+            background:
+              "radial-gradient(ellipse 80% 50% at 50% -20%, hsl(160 84% 39% / 0.15), transparent)",
           }}
         />
         <div className="text-center relative">
@@ -662,7 +740,8 @@ export default function ExportPage() {
       <div
         className="fixed inset-0 pointer-events-none"
         style={{
-          background: "radial-gradient(ellipse 80% 50% at 50% -20%, hsl(160 84% 39% / 0.15), transparent)",
+          background:
+            "radial-gradient(ellipse 80% 50% at 50% -20%, hsl(160 84% 39% / 0.15), transparent)",
         }}
       />
 
@@ -682,8 +761,12 @@ export default function ExportPage() {
                   <Download className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-lg font-bold text-foreground">Export Screenshots</h1>
-                  <p className="text-sm text-muted-foreground">{project?.name}</p>
+                  <h1 className="text-lg font-bold text-foreground">
+                    Export Screenshots
+                  </h1>
+                  <p className="text-sm text-muted-foreground">
+                    {project?.name}
+                  </p>
                 </div>
               </div>
             </div>
@@ -695,14 +778,20 @@ export default function ExportPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-6">
             <div className="p-6 bg-card border border-border rounded-2xl">
-              <h2 className="text-lg font-bold text-foreground mb-4">Export Summary</h2>
+              <h2 className="text-lg font-bold text-foreground mb-4">
+                Export Summary
+              </h2>
               <div className="grid grid-cols-2 gap-4">
                 <div className="p-4 bg-secondary rounded-xl text-center">
-                  <p className="text-3xl font-bold text-primary">{selectedSizes.size}</p>
+                  <p className="text-3xl font-bold text-primary">
+                    {selectedSizes.size}
+                  </p>
                   <p className="text-sm text-muted-foreground">Devices</p>
                 </div>
                 <div className="p-4 bg-secondary rounded-xl text-center">
-                  <p className="text-3xl font-bold text-blue-400">{totalImages}</p>
+                  <p className="text-3xl font-bold text-blue-400">
+                    {totalImages}
+                  </p>
                   <p className="text-sm text-muted-foreground">Images</p>
                 </div>
               </div>
@@ -716,8 +805,12 @@ export default function ExportPage() {
                       <Apple className="w-5 h-5 text-background" />
                     </div>
                     <div>
-                      <h3 className="font-bold text-foreground">iOS App Store</h3>
-                      <p className="text-sm text-muted-foreground">{iosSizes.length} sizes</p>
+                      <h3 className="font-bold text-foreground">
+                        iOS App Store
+                      </h3>
+                      <p className="text-sm text-muted-foreground">
+                        {iosSizes.length} sizes
+                      </p>
                     </div>
                   </div>
                   <button
@@ -746,7 +839,9 @@ export default function ExportPage() {
                             isSelected ? "bg-primary" : "bg-secondary"
                           }`}
                         >
-                          {isSelected && <Check className="w-4 h-4 text-white" />}
+                          {isSelected && (
+                            <Check className="w-4 h-4 text-white" />
+                          )}
                         </div>
                         <div className="text-left">
                           <p className="font-semibold">{size.name}</p>
@@ -769,8 +864,12 @@ export default function ExportPage() {
                       <Smartphone className="w-5 h-5 text-white" />
                     </div>
                     <div>
-                      <h3 className="font-bold text-foreground">Google Play Store</h3>
-                      <p className="text-sm text-muted-foreground">{androidSizes.length} sizes</p>
+                      <h3 className="font-bold text-foreground">
+                        Google Play Store
+                      </h3>
+                      <p className="text-sm text-muted-foreground">
+                        {androidSizes.length} sizes
+                      </p>
                     </div>
                   </div>
                   <button
@@ -799,13 +898,17 @@ export default function ExportPage() {
                             isSelected ? "bg-white" : "bg-secondary"
                           }`}
                         >
-                          {isSelected && <Check className="w-4 h-4 text-primary" />}
+                          {isSelected && (
+                            <Check className="w-4 h-4 text-primary" />
+                          )}
                         </div>
                         <div className="text-left">
                           <p className="font-semibold">{size.name}</p>
                           <p
                             className={`text-sm ${
-                              isSelected ? "text-primary-foreground/70" : "text-muted-foreground"
+                              isSelected
+                                ? "text-primary-foreground/70"
+                                : "text-muted-foreground"
                             }`}
                           >
                             {size.width} × {size.height}
@@ -826,7 +929,9 @@ export default function ExportPage() {
                   <Package className="w-5 h-5 text-muted-foreground" />
                 </div>
                 <div>
-                  <p className="font-bold text-foreground">{totalImages} images</p>
+                  <p className="font-bold text-foreground">
+                    {totalImages} images
+                  </p>
                   <p className="text-sm text-muted-foreground">ZIP archive</p>
                 </div>
               </div>
@@ -885,7 +990,9 @@ export default function ExportPage() {
             <CheckCircle2 className="w-5 h-5 text-primary" />
             <div>
               <p className="font-semibold text-foreground">Export Complete!</p>
-              <p className="text-sm text-muted-foreground">{totalImages} images downloaded</p>
+              <p className="text-sm text-muted-foreground">
+                {totalImages} images downloaded
+              </p>
             </div>
             <button
               onClick={() => setExportComplete(false)}
