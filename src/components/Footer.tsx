@@ -7,14 +7,9 @@ const Footer = () => {
             <img
               src="/logo.png"
               alt="Logo"
-              className="w-10 h-10 hidden sm:block"
+              className="w-30 h-20 hidden sm:block"
             />
-            <span
-              className="font-display font-bold text-2xl text-foreground"
-              style={{ marginLeft: -6 }}
-            >
-              Shotify
-            </span>
+           
           </div>
           <p className="text-muted-foreground max-w-md mx-auto">
             Create stunning app screenshots in seconds. The ultimate tool for
@@ -54,7 +49,7 @@ const Footer = () => {
 
         <div className="pt-8 border-t border-border/50">
           <p className="text-muted-foreground text-sm">
-            © 2026 Shotify. Crafted with ❤️ for developers and designers.
+            © 2026 AppLens. Crafted with ❤️ for developers and designers.
           </p>
         </div>
       </div>
