@@ -53,15 +53,11 @@ export default function MainLayout() {
                 className="flex items-center gap-3 mb-8 animate-slide-up opacity-0 stagger-1"
                 style={{ marginTop: 35 }}
               >
-                <img
+                 <img
                   src="/logo.png"
                   alt="Logo"
-                  className="w-20 h-20 hidden sm:block"
-                  style={{ marginLeft: -20, marginRight: -14 }}
-                />
-                <span className="text-3xl font-bold text-foreground">
-                  Shotify
-                </span>
+                  className="w-30 h-10 hidden sm:block"
+                 />
               </div>
             </Link>
 
