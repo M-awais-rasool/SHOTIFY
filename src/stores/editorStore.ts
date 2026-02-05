@@ -11,11 +11,9 @@ import type {
 import { normalizeLayers } from "@/lib/layerUtils";
 
 interface EditorState {
-  // Project info
   projectName: string;
   setProjectName: (name: string) => void;
 
-  // Current slide's canvas and layers (derived from device + slide)
   canvas: CanvasConfig;
   layers: LayerConfig[];
   setCanvas: (canvas: CanvasConfig) => void;
@@ -43,7 +41,6 @@ interface EditorState {
   exportSizes: ExportSize[];
   setExportSizes: (sizes: ExportSize[]) => void;
 
-  // Device management
   selectedDeviceKey: string | null;
   setSelectedDeviceKey: (key: string | null) => void;
   deviceConfigs: DeviceConfigMap;
