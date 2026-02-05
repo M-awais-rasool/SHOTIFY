@@ -15,6 +15,7 @@ import DashboardPage from "./pages/dashboard/DashboardPage";
 import TemplatesPage from "./pages/templates/TemplatesPage";
 import { EditorPage } from "./pages/editor/EditorPage";
 import ExportPage from "./pages/export/ExportPage";
+import Settings from "./pages/setting/Settings";
 
 const queryClient = new QueryClient();
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -76,6 +77,7 @@ const App = () => (
             <Route path="/templates" element={<TemplatesPage />} />
             <Route path="/editor/:projectId" element={<EditorPage />} />
             <Route path="/export/:projectId" element={<ExportPage />} />
+            <Route path="/settings" element={<Settings />} />
           </Route>
 
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
