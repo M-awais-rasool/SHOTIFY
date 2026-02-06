@@ -46,12 +46,6 @@ export function NotificationSettings() {
         >
           <Switch checked={inAppNotifs} onCheckedChange={setInAppNotifs} />
         </SettingsRow>
-        <SettingsRow 
-          label="Sound Effects" 
-          description="Play sounds for notifications"
-        >
-          <Switch />
-        </SettingsRow>
       </SettingsSection>
 
       <SettingsSection title="Product Updates">
