@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { projectsApi } from "@/lib/api";
 import type { Project } from "@/types";
 import {
@@ -17,15 +18,18 @@ import { formatDistanceToNow } from "@/lib/utils";
 
 export default function DashboardPage() {
   const navigate = useNavigate();
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
 
-  useEffect(() => {
-    fetchProjects();
-  }, []);
+  const { data: projects = [], isLoading } = useQuery({
+    queryKey: ["projects"],
+    queryFn: async () => {
+      const response = await projectsApi.getAll();
+      return response.data.data || [];
+    },
+  });
 
   useEffect(() => {
     const handleClickOutside = () => setMenuOpenId(null);
@@ -35,29 +39,25 @@ export default function DashboardPage() {
     }
   }, [menuOpenId]);
 
-  const fetchProjects = async () => {
-    try {
-      const response = await projectsApi.getAll();
-      setProjects(response.data.data || []);
-    } catch (error) {
-      console.error("Failed to fetch projects:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleDelete = async (id: string) => {
-    try {
-      await projectsApi.delete(id);
-      setProjects(projects.filter((p) => p.id !== id));
-    } catch (error) {
-      console.error("Failed to delete project:", error);
-    } finally {
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => projectsApi.delete(id),
+    onSuccess: (_data, id) => {
+      queryClient.setQueryData<Project[]>(["projects"], (old) =>
+        old?.filter((p) => p.id !== id) || []
+      );
       setDeleteId(null);
-    }
+    },
+    onError: (error) => {
+      console.error("Failed to delete project:", error);
+      setDeleteId(null);
+    },
+  });
+
+  const handleDelete = (id: string) => {
+    deleteMutation.mutate(id);
   };
 
-  const filteredProjects = projects.filter((p) =>
+  const filteredProjects = projects.filter((p: Project) =>
     p.name.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
